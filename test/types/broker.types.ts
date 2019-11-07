@@ -8,13 +8,13 @@ import {
 import * as Services from './services.types';
 export interface Broker {
   call(
-    actionName: 'api.upsert',
+    actionName: 'api.request',
     params: Services.ApiServiceTypes.Actions[0]['in'],
     opts?: CallingOptions,
   ): PromiseLike<Services.ApiServiceTypes.Actions[0]['out']>;
 
   call(
-    actionName: 'api.delete',
+    actionName: 'api.context',
     params: Services.ApiServiceTypes.Actions[1]['in'],
     opts?: CallingOptions,
   ): PromiseLike<Services.ApiServiceTypes.Actions[1]['out']>;

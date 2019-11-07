@@ -1,8 +1,4 @@
-import { Action, Event, ConcatMultiple } from '../src/index';
-
-import {} from 'moleculer-ts';
-
-import { ApiServiceTypes } from '../test/types';
+import { Action, Event, ConcatMultiple } from 'moleculer-ts';
 
 export const name: 'api' = 'api';
 
@@ -11,7 +7,7 @@ export type OwnActions = [
   Action<'context', { user: { id: string }; account: { id: string } }, number>,
 ];
 
-export type OwnEvents = [Event<'test', { name: string }>];
+export type OwnEvents = [];
 
 export type Actions = ConcatMultiple<[OwnActions]>;
 export type Events = ConcatMultiple<[OwnEvents]>;

@@ -47,6 +47,8 @@ export const Broker: Broker = (MoleculerServiceBroker as unknown) as Broker;
 
 
 let B: Broker;
+
+
 B.broadcast('test.test.*', )
 B.call('test.create', {});
 

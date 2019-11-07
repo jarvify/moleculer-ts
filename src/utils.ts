@@ -12,7 +12,7 @@ const capitalize = (s: string) => {
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
-export async function formatAndSave(input: string, destination: string) {
+async function formatAndSave(input: string, destination: string) {
   const info = await prettier.getFileInfo(destination);
 
   const options = (await prettier.resolveConfig(destination)) || undefined;
@@ -43,18 +43,19 @@ export async function formatAndSave(input: string, destination: string) {
 
 type GenerateBrokerOptions = {
   serviceTypesPattern: string;
-  outputTypesDir: string;
-  rootDir?: string;
+  rootDir: string;
+  rootDirAlias?: string;
+  outputDir: string;
+  moleculer: string;
 };
 
-export function getServiceTypeName(name: string) {
-  return `${capitalize(name)}ServiceTypes`;
+function getServiceTypeName(name: string) {
+  const pureName = name.replace(/[^a-zA-Z0-9]/g, '');
+  return `${capitalize(pureName)}ServiceTypes`;
 }
 
-export async function generateBroker(options: GenerateBrokerOptions) {
-  if (!options.rootDir) {
-    options.rootDir = process.cwd();
-  }
+export async function generateBroker(options: GenerateBrokerOptions & {}) {
+  const importRoot = options.rootDirAlias || options.rootDir;
 
   const serviceTypeFiles = glob.sync(options.serviceTypesPattern);
 
@@ -74,9 +75,13 @@ export async function generateBroker(options: GenerateBrokerOptions) {
         .replace(/[\'\"]/g, '')
         .trim();
 
+      const rootDirAbs = path.resolve(options.rootDir);
+      const fileAbs = path.resolve(file);
+      const fileRelative = fileAbs.replace(rootDirAbs, '');
+
       services.push({
         name,
-        path: `${options.rootDir}/${file.replace(/\.ts$/, '')}`,
+        path: `${importRoot}${fileRelative.replace(/\.ts$/, '')}`,
       });
     } else {
       throw new Error(`"export const name: /"  Not found in ${file}`);
@@ -84,23 +89,23 @@ export async function generateBroker(options: GenerateBrokerOptions) {
   });
 
   // service types file content
-  const importMoleculerTs = `import * as MoleculerTs from 'src/index'`;
+  const importMoleculerTs = `import * as MoleculerTs from 'moleculer-ts'`;
   serviceTypesFileContent += `${importMoleculerTs}\n`;
 
   services.forEach(svc => {
     serviceTypesFileContent += `declare module '${svc.path}' {
         type ActionParams<T extends MoleculerTs.GetNames<${getServiceTypeName(
           svc.name,
-        )}.Actions>> = MoleculerTs.GetParams<
+        )}.Actions>> = MoleculerTs.GetParamsStrict<
         ${getServiceTypeName(svc.name)}.Actions,
           T
         >;
         type ActionReturn<T extends MoleculerTs.GetNames<${getServiceTypeName(
           svc.name,
         )}.Actions>> = MoleculerTs.GetReturn<Actions, T>;
-        type EventReturn<T extends MoleculerTs.GetNames<${getServiceTypeName(
+        type EventParams<T extends MoleculerTs.GetNames<${getServiceTypeName(
           svc.name,
-        )}.Events>> = MoleculerTs.GetParams<${getServiceTypeName(
+        )}.Events>> = MoleculerTs.GetParamsStrict<${getServiceTypeName(
       svc.name,
     )}.Events, T>;
         type ServiceInterface = MoleculerTs.GetServiceInterface<${getServiceTypeName(
@@ -125,32 +130,37 @@ export async function generateBroker(options: GenerateBrokerOptions) {
 
   formatAndSave(
     serviceTypesFileContent,
-    `${options.outputTypesDir}/services.types.ts`,
+    `${options.rootDir}/${options.outputDir}/services.types.ts`,
   );
+
+  type C = 'A' | {};
 
   // broker type file gen
   let cpMetaFile = ``;
   cpMetaFile += `
-    import * as Services from '${options.outputTypesDir}/services.types';
-    import * as MoleculerTs from './src/index'\n;
+    import * as Services from '${importRoot}/${options.outputDir}/services.types';
+    import { enumerate } from 'ts-transformer-enumerate';
+    ${importMoleculerTs}\n;
   `;
 
   cpMetaFile += 'const meta: any = {';
   services.forEach(svc => {
     cpMetaFile += `'${getServiceTypeName(
       svc.name,
-    )}': { actionsLength: Object.keys(MoleculerTs.enumerate<MoleculerTs.GetNameKeys<Services.${getServiceTypeName(
+    )}': { actionsLength: Object.keys(enumerate<MoleculerTs.GetAllNameKeysAndLength<Services.${getServiceTypeName(
       svc.name,
-    )}.Actions, any>>()).length, eventsLength: Object.keys(MoleculerTs.enumerate<MoleculerTs.GetNameKeys<Services.${getServiceTypeName(
+    )}.Actions>>()).length -1, eventsLength: Object.keys(enumerate<MoleculerTs.GetAllNameKeysAndLength<Services.${getServiceTypeName(
       svc.name,
-    )}.Events, any>>()).length },`;
+    )}.Events>>()).length -1, actionsEnum: enumerate<MoleculerTs.GetNames<Services.${getServiceTypeName(
+      svc.name,
+    )}.Actions>>() },`;
   });
 
   cpMetaFile += '}\n';
 
   cpMetaFile += 'console.log(JSON.stringify(meta));';
 
-  const cpMeta = cp.spawn(`./node_modules/.bin/ts-node`, ['-e', cpMetaFile]);
+  const cpMeta = cp.spawn(`node_modules/.bin/ts-node`, ['-e', cpMetaFile]);
 
   let rawMeta = '';
 
@@ -173,8 +183,9 @@ export async function generateBroker(options: GenerateBrokerOptions) {
   // broker action names
   let cpMetaNamesFile = ``;
   cpMetaNamesFile += `
-    import * as Services from '${options.outputTypesDir}/services.types';
-    import * as MoleculerTs from './src/index'\n;
+    import * as Services from '${importRoot}/${options.outputDir}/services.types';
+    import { enumerate } from 'ts-transformer-enumerate';
+    ${importMoleculerTs}\n;
   `;
 
   cpMetaNamesFile += 'const meta: any = {';
@@ -184,7 +195,7 @@ export async function generateBroker(options: GenerateBrokerOptions) {
       .forEach((_, index) => {
         cpMetaNamesFile += `Services${getServiceTypeName(
           svc.name,
-        )}ActionsName${index}: Object.keys(MoleculerTs.enumerate<Services.${getServiceTypeName(
+        )}ActionsName${index}: Object.keys(enumerate<Services.${getServiceTypeName(
           svc.name,
         )}.Actions[${index}]['name']>())[0],`;
       });
@@ -194,7 +205,7 @@ export async function generateBroker(options: GenerateBrokerOptions) {
       .forEach((_, index) => {
         cpMetaNamesFile += `Services${getServiceTypeName(
           svc.name,
-        )}EventsName${index}: Object.keys(MoleculerTs.enumerate<Services.${getServiceTypeName(
+        )}EventsName${index}: Object.keys(enumerate<Services.${getServiceTypeName(
           svc.name,
         )}.Events[${index}]['name']>())[0],`;
       });
@@ -226,18 +237,17 @@ export async function generateBroker(options: GenerateBrokerOptions) {
   });
 
   const metaNames = JSON.parse(rawMetaNames);
+
   // broker type file
   let brokerTypesFileContent = '';
 
-  brokerTypesFileContent += ` import {
-    Service as MoleculerService,
-    Context as MoleculerContext,
-    ServiceBroker as MoleculerServiceBroker,
-    CallingOptions,
-  } from 'moleculer';
+  brokerTypesFileContent += ` import * as Broker from '${importRoot}/${options.moleculer}';
 
   import * as Services from './services.types';
-  export interface Broker {\n`;
+  export interface ServiceBroker {
+    call(actionName: never): never;
+    emit(actionName: never): never;  
+  `;
 
   // call
   services.forEach(svc => {
@@ -254,7 +264,7 @@ export async function generateBroker(options: GenerateBrokerOptions) {
           params: Services.${getServiceTypeName(
             svc.name,
           )}.Actions[${index}]['in'],
-          opts?: CallingOptions,
+          opts?: Broker.CallingOptions,
         ): PromiseLike<Services.${getServiceTypeName(
           svc.name,
         )}.Actions[${index}]['out']>;
@@ -262,11 +272,16 @@ export async function generateBroker(options: GenerateBrokerOptions) {
       });
   });
 
+  let brokerTypesServiceEventsNames = 'export type ServiceEventNames = never';
   // emit
   services.forEach(svc => {
     Array(meta[getServiceTypeName(svc.name)].eventsLength)
       .fill(0)
       .forEach((_, index) => {
+        brokerTypesServiceEventsNames += ` | '${svc.name}.${
+          metaNames[`Services${getServiceTypeName(svc.name)}EventsName${index}`]
+        }'`;
+
         brokerTypesFileContent += `
         emit(
           eventName: '${svc.name}.${
@@ -275,41 +290,99 @@ export async function generateBroker(options: GenerateBrokerOptions) {
           payload: Services.${getServiceTypeName(
             svc.name,
           )}.Events[${index}]['in'],
-          groups?: ServiceNamesGroup
+          groups?: ServiceNamesEmitGroup
         ): void
         `;
       });
   });
   brokerTypesFileContent += `
-  broadcast: Broker['emit']
-  broadcastLocal: Broker['emit']
+  broadcast: ServiceBroker['emit']
+  broadcastLocal: ServiceBroker['emit']
   `;
 
   brokerTypesFileContent += '}';
 
-  brokerTypesFileContent += 'export type ServiceNames = ';
+  brokerTypesFileContent += `
+  export type ServiceNames = never `;
   services.forEach((svc, index) => {
-    brokerTypesFileContent += `'${svc.name}'`;
-    if (services.length - 1 > index) {
-      brokerTypesFileContent += ' | ';
-    } else {
-      brokerTypesFileContent += '\n';
-    }
+    brokerTypesFileContent += `| '${svc.name}' `;
   });
-  brokerTypesFileContent +=
-    'export type ServiceNamesGroup = ServiceNames | ServiceNames[];';
+  brokerTypesFileContent += ';\n';
+  brokerTypesFileContent += `export type ServiceNamesEmitGroup = ServiceNames | ServiceNames[];
+    ${brokerTypesServiceEventsNames};
+    `;
 
   formatAndSave(
     brokerTypesFileContent,
-    `${options.outputTypesDir}/broker.types.ts`,
+    `${options.rootDir}/${options.outputDir}/broker.types.ts`,
   );
 
-  let schemaFileContent = '';
+  // schema
+  let cpSchemaFile = ``;
+  cpSchemaFile += `
+   import * as Services from '${importRoot}/${options.outputDir}/services.types';
+   import { schema } from 'ts-transformer-json-schema';
+   import { enumerate } from 'ts-transformer-enumerate';
+   ${importMoleculerTs}\n;
+ `;
+
+  cpSchemaFile += ``;
+
+  cpSchemaFile += 'const meta: any = {';
+
+  services.forEach(svc => {
+    cpSchemaFile += `'${svc.name}': {`;
+    if (meta[getServiceTypeName(svc.name)].actionsLength > 0) {
+      Object.values(meta[getServiceTypeName(svc.name)].actionsEnum).forEach(
+        actionName => {
+          cpSchemaFile += `'${actionName}': schema<Services.${getServiceTypeName(
+            svc.name,
+          )}.ActionParams<'${actionName}'>>(),`;
+        },
+      );
+    }
+    cpSchemaFile += `},`;
+  });
+
+  cpSchemaFile += '}\n';
+
+  cpSchemaFile += 'console.log(JSON.stringify(meta));';
+
+  const cpSchema = cp.spawn(`./node_modules/.bin/ts-node`, [
+    '-e',
+    cpSchemaFile,
+  ]);
+
+  let rawMetaSchema = '';
+
+  cpSchema.stdout.on('data', data => {
+    rawMetaSchema += data;
+  });
+
+  cpSchema.stderr.on('data', data => {
+    console.error(`stderr: ${data}`);
+  });
+
+  await new Promise(resolve => {
+    cpSchema.on('close', code => {
+      resolve();
+    });
+  });
+
+  const metaSchema = JSON.parse(rawMetaSchema);
+
+  let schemaFileContent = 'export default ';
+  schemaFileContent += rawMetaSchema;
+
+  await formatAndSave(
+    schemaFileContent,
+    `${options.rootDir}/${options.outputDir}/services.schema.ts`,
+  );
 }
 
 export async function generateBrokerWatch(options: GenerateBrokerOptions) {
   await generateBroker(options);
-  watch(options.serviceTypesPattern, async function(done) {
+  return watch(options.serviceTypesPattern, async function(done) {
     await generateBroker(options);
     done();
   });

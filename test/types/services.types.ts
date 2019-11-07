@@ -1,4 +1,4 @@
-import * as MoleculerTs from 'src/index';
+import * as MoleculerTs from 'moleculer-ts';
 declare module '/Users/edko/Sandbox/Jarvify/moleculer-ts/test/api.service.types' {
   type ActionParams<
     T extends MoleculerTs.GetNames<ApiServiceTypes.Actions>
