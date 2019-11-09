@@ -41,7 +41,7 @@ export interface ServiceBroker {
   ): PromiseLike<Services.UserServiceTypes.Actions[1]['out']>;
 
   call(
-    actionName: 'user.get',
+    actionName: 'user.create',
     params: Services.UserServiceTypes.Actions[2]['in'],
     opts?: Broker.CallingOptions,
   ): PromiseLike<Services.UserServiceTypes.Actions[2]['out']>;
@@ -53,10 +53,16 @@ export interface ServiceBroker {
   ): PromiseLike<Services.UserServiceTypes.Actions[3]['out']>;
 
   call(
-    actionName: 'user.delete',
+    actionName: 'user.get',
     params: Services.UserServiceTypes.Actions[4]['in'],
     opts?: Broker.CallingOptions,
   ): PromiseLike<Services.UserServiceTypes.Actions[4]['out']>;
+
+  call(
+    actionName: 'user.delete',
+    params: Services.UserServiceTypes.Actions[5]['in'],
+    opts?: Broker.CallingOptions,
+  ): PromiseLike<Services.UserServiceTypes.Actions[5]['out']>;
 
   emit(
     eventName: 'user.nodeChange',

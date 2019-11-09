@@ -9,6 +9,7 @@ type GenerateBrokerOptions = {
   serviceTypesPattern: string;
   outputDir: string;
   generateActionsSchema?: boolean;
+  actionSchemaDepth?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
   isServiceName?: (name: string) => boolean;
 };
 
@@ -63,8 +64,9 @@ export async function generateBroker(options: GenerateBrokerOptions) {
   if (typeof options.generateActionsSchema !== 'boolean') {
     options.generateActionsSchema = true;
   }
+  const actionSchemaDepth = options.actionSchemaDepth || 3;
 
-  let isServiceName =
+  const isServiceName =
     options.isServiceName ||
     function(name: string) {
       return !Boolean(name.match(/^\$/));
@@ -76,7 +78,7 @@ export async function generateBroker(options: GenerateBrokerOptions) {
   const serviceTypeFiles = glob.sync(options.serviceTypesPattern);
 
   let serviceTypesFileContent = '';
-  let services: { name: string; path: string }[] = [];
+  const services: { name: string; path: string }[] = [];
 
   // init
   serviceTypeFiles.forEach(file => {
@@ -138,8 +140,6 @@ export async function generateBroker(options: GenerateBrokerOptions) {
     serviceTypesFileContent,
     path.join(options.outputDir, 'services.types.ts'),
   );
-
-  type C = 'A' | {};
 
   // broker type file gen
   let cpMetaFile = ``;
@@ -330,6 +330,8 @@ export async function generateBroker(options: GenerateBrokerOptions) {
 
   // actions schema
   if (options.generateActionsSchema) {
+    // @TODO break to action chunks, implement queue 100 ?
+    // if fail set wrong type, so we can print warning!
     let cpSchemaFile = ``;
     cpSchemaFile += `
    import * as Services from '${outputDirImport}/services.types';
@@ -347,9 +349,9 @@ export async function generateBroker(options: GenerateBrokerOptions) {
       if (meta[getServiceTypeName(svc.name)].actionsLength > 0) {
         Object.values(meta[getServiceTypeName(svc.name)].actionsEnum).forEach(
           actionName => {
-            cpSchemaFile += `'${actionName}': schema<Services.${getServiceTypeName(
+            cpSchemaFile += `'${actionName}': schema<MoleculerTs.FiniteL${actionSchemaDepth}<Services.${getServiceTypeName(
               svc.name,
-            )}.ActionParams<'${actionName}'>>(),`;
+            )}.ActionParams<'${actionName}'>>>(),`;
           },
         );
       }
@@ -376,8 +378,7 @@ export async function generateBroker(options: GenerateBrokerOptions) {
     });
 
     await new Promise(resolve => {
-      // @TODO investigate not flushing output
-      cpSchema.on('exit', code => {
+      cpSchema.on('close', code => {
         resolve();
       });
     });

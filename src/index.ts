@@ -55,3 +55,55 @@ export type GetReturn<T extends any[], P extends GetNames<T>> = {
 export type GetServiceInterface<T extends any[]> = {
   [K in GetNames<T>]: (...args: any) => any;
 };
+
+export type FiniteL9<T> = {
+  [K in keyof T]: T[K] extends Array<infer U>
+    ? Array<FiniteL8<U>>
+    : FiniteL8<T[K]>;
+};
+
+export type FiniteL8<T> = {
+  [K in keyof T]: T[K] extends Array<infer U>
+    ? Array<FiniteL7<U>>
+    : FiniteL7<T[K]>;
+};
+
+export type FiniteL7<T> = {
+  [K in keyof T]: T[K] extends Array<infer U>
+    ? Array<FiniteL6<U>>
+    : FiniteL6<T[K]>;
+};
+
+export type FiniteL6<T> = {
+  [K in keyof T]: T[K] extends Array<infer U>
+    ? Array<FiniteL5<U>>
+    : FiniteL5<T[K]>;
+};
+
+export type FiniteL5<T> = {
+  [K in keyof T]: T[K] extends Array<infer U>
+    ? Array<FiniteL4<U>>
+    : FiniteL4<T[K]>;
+};
+
+export type FiniteL4<T> = {
+  [K in keyof T]: T[K] extends Array<infer U>
+    ? Array<FiniteL3<U>>
+    : FiniteL3<T[K]>;
+};
+
+export type FiniteL3<T> = {
+  [K in keyof T]: T[K] extends Array<infer U>
+    ? Array<FiniteL2<U>>
+    : FiniteL2<T[K]>;
+};
+
+export type FiniteL2<T> = {
+  [K in keyof T]: T[K] extends Array<infer U>
+    ? Array<FiniteL1<U>>
+    : FiniteL1<T[K]>;
+};
+
+export type FiniteL1<T> = {
+  [K in keyof T]: T[K] extends any[] ? any[] : any;
+};

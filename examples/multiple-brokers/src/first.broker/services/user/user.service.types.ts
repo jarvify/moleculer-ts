@@ -7,11 +7,13 @@ type User = {
   name: string;
   email: string;
   password: string;
+  arr: User[];
 };
 
 export type OwnActions = [
+  Action<'create', User, { id: string }>,
   Action<'create', { name: string }, User>,
-  Action<'create', { name: string; $info: string }, unknown>,
+  Action<'create', { name: string; $info: string }, User>,
   Action<'get', { id: string }, User>,
   Action<'get', { email: string }, User>,
   Action<'delete', { id: string }, User>,
