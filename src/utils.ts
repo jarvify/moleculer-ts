@@ -5,6 +5,13 @@ import glob from 'glob';
 import path from 'path';
 import cp from 'child_process';
 
+type GenerateBrokerOptions = {
+  serviceTypesPattern: string;
+  outputDir: string;
+  generateActionsSchema?: boolean;
+  isServiceName?: (name: string) => boolean;
+};
+
 const capitalize = (s: string) => {
   if (typeof s !== 'string') {
     return '';
@@ -41,51 +48,50 @@ async function formatAndSave(input: string, destination: string) {
   });
 }
 
-type GenerateBrokerOptions = {
-  serviceTypesPattern: string;
-  rootDir: string;
-  rootDirAlias?: string;
-  outputDir: string;
-  moleculer: string;
-};
-
 function getServiceTypeName(name: string) {
   const pureName = name.replace(/[^a-zA-Z0-9]/g, '');
   return `${capitalize(pureName)}ServiceTypes`;
 }
 
-export async function generateBroker(options: GenerateBrokerOptions & {}) {
-  const importRoot = options.rootDirAlias || options.rootDir;
+function getRelativePathForImport(from: string, to: string) {
+  return path.posix
+    .relative(path.posix.normalize(from), path.posix.normalize(to))
+    .replace(/\.ts$/, '');
+}
+
+export async function generateBroker(options: GenerateBrokerOptions) {
+  if (typeof options.generateActionsSchema !== 'boolean') {
+    options.generateActionsSchema = true;
+  }
+
+  let isServiceName =
+    options.isServiceName ||
+    function(name: string) {
+      return !Boolean(name.match(/^\$/));
+    };
+
+  const outputDirFs = path.normalize(options.outputDir);
+  const outputDirImport = path.posix.normalize(options.outputDir);
 
   const serviceTypeFiles = glob.sync(options.serviceTypesPattern);
 
   let serviceTypesFileContent = '';
-
   let services: { name: string; path: string }[] = [];
 
   // init
   serviceTypeFiles.forEach(file => {
-    const data = fs.readFileSync(file).toString();
-    const res = data.match(/export const name: .*/);
+    const serviceRelativePath = getRelativePathForImport(
+      options.outputDir,
+      file,
+    );
 
-    if (res) {
-      const name = res[0]
-        .replace('export const name: ', '')
-        .replace(/=.*/, '')
-        .replace(/[\'\"]/g, '')
-        .trim();
+    const service = require(file);
+    const name = service.name;
 
-      const rootDirAbs = path.resolve(options.rootDir);
-      const fileAbs = path.resolve(file);
-      const fileRelative = fileAbs.replace(rootDirAbs, '');
-
-      services.push({
-        name,
-        path: `${importRoot}${fileRelative.replace(/\.ts$/, '')}`,
-      });
-    } else {
-      throw new Error(`"export const name: /"  Not found in ${file}`);
-    }
+    services.push({
+      name,
+      path: serviceRelativePath,
+    });
   });
 
   // service types file content
@@ -130,7 +136,7 @@ export async function generateBroker(options: GenerateBrokerOptions & {}) {
 
   formatAndSave(
     serviceTypesFileContent,
-    `${options.rootDir}/${options.outputDir}/services.types.ts`,
+    path.join(options.outputDir, 'services.types.ts'),
   );
 
   type C = 'A' | {};
@@ -138,7 +144,7 @@ export async function generateBroker(options: GenerateBrokerOptions & {}) {
   // broker type file gen
   let cpMetaFile = ``;
   cpMetaFile += `
-    import * as Services from '${importRoot}/${options.outputDir}/services.types';
+    import * as Services from '${outputDirImport}/services.types';
     import { enumerate } from 'ts-transformer-enumerate';
     ${importMoleculerTs}\n;
   `;
@@ -160,7 +166,10 @@ export async function generateBroker(options: GenerateBrokerOptions & {}) {
 
   cpMetaFile += 'console.log(JSON.stringify(meta));';
 
-  const cpMeta = cp.spawn(`node_modules/.bin/ts-node`, ['-e', cpMetaFile]);
+  const cpMeta = cp.spawn(`${path.join('node_modules', '.bin', 'ts-node')}`, [
+    '-e',
+    cpMetaFile,
+  ]);
 
   let rawMeta = '';
 
@@ -183,7 +192,7 @@ export async function generateBroker(options: GenerateBrokerOptions & {}) {
   // broker action names
   let cpMetaNamesFile = ``;
   cpMetaNamesFile += `
-    import * as Services from '${importRoot}/${options.outputDir}/services.types';
+    import * as Services from '${outputDirImport}/services.types';
     import { enumerate } from 'ts-transformer-enumerate';
     ${importMoleculerTs}\n;
   `;
@@ -215,10 +224,10 @@ export async function generateBroker(options: GenerateBrokerOptions & {}) {
 
   cpMetaNamesFile += 'console.log(JSON.stringify(meta));';
 
-  const cpMetaNames = cp.spawn(`./node_modules/.bin/ts-node`, [
-    '-e',
-    cpMetaNamesFile,
-  ]);
+  const cpMetaNames = cp.spawn(
+    `${path.join('node_modules', '.bin', 'ts-node')}`,
+    ['-e', cpMetaNamesFile],
+  );
 
   let rawMetaNames = '';
 
@@ -241,8 +250,7 @@ export async function generateBroker(options: GenerateBrokerOptions & {}) {
   // broker type file
   let brokerTypesFileContent = '';
 
-  brokerTypesFileContent += ` import * as Broker from '${importRoot}/${options.moleculer}';
-
+  brokerTypesFileContent += ` import * as Broker from './moleculer';
   import * as Services from './services.types';
   export interface ServiceBroker {
     call(actionName: never): never;
@@ -305,6 +313,9 @@ export async function generateBroker(options: GenerateBrokerOptions & {}) {
   brokerTypesFileContent += `
   export type ServiceNames = never `;
   services.forEach((svc, index) => {
+    if (!isServiceName(svc.name)) {
+      return;
+    }
     brokerTypesFileContent += `| '${svc.name}' `;
   });
   brokerTypesFileContent += ';\n';
@@ -314,70 +325,70 @@ export async function generateBroker(options: GenerateBrokerOptions & {}) {
 
   formatAndSave(
     brokerTypesFileContent,
-    `${options.rootDir}/${options.outputDir}/broker.types.ts`,
+    path.join(outputDirFs, 'broker.types.ts'),
   );
 
-  // schema
-  let cpSchemaFile = ``;
-  cpSchemaFile += `
-   import * as Services from '${importRoot}/${options.outputDir}/services.types';
+  // actions schema
+  if (options.generateActionsSchema) {
+    let cpSchemaFile = ``;
+    cpSchemaFile += `
+   import * as Services from '${outputDirImport}/services.types';
    import { schema } from 'ts-transformer-json-schema';
    import { enumerate } from 'ts-transformer-enumerate';
    ${importMoleculerTs}\n;
  `;
 
-  cpSchemaFile += ``;
+    cpSchemaFile += ``;
 
-  cpSchemaFile += 'const meta: any = {';
+    cpSchemaFile += 'const meta: any = {';
 
-  services.forEach(svc => {
-    cpSchemaFile += `'${svc.name}': {`;
-    if (meta[getServiceTypeName(svc.name)].actionsLength > 0) {
-      Object.values(meta[getServiceTypeName(svc.name)].actionsEnum).forEach(
-        actionName => {
-          cpSchemaFile += `'${actionName}': schema<Services.${getServiceTypeName(
-            svc.name,
-          )}.ActionParams<'${actionName}'>>(),`;
-        },
-      );
-    }
-    cpSchemaFile += `},`;
-  });
-
-  cpSchemaFile += '}\n';
-
-  cpSchemaFile += 'console.log(JSON.stringify(meta));';
-
-  const cpSchema = cp.spawn(`./node_modules/.bin/ts-node`, [
-    '-e',
-    cpSchemaFile,
-  ]);
-
-  let rawMetaSchema = '';
-
-  cpSchema.stdout.on('data', data => {
-    rawMetaSchema += data;
-  });
-
-  cpSchema.stderr.on('data', data => {
-    console.error(`stderr: ${data}`);
-  });
-
-  await new Promise(resolve => {
-    cpSchema.on('close', code => {
-      resolve();
+    services.forEach(svc => {
+      cpSchemaFile += `'${svc.name}': {`;
+      if (meta[getServiceTypeName(svc.name)].actionsLength > 0) {
+        Object.values(meta[getServiceTypeName(svc.name)].actionsEnum).forEach(
+          actionName => {
+            cpSchemaFile += `'${actionName}': schema<Services.${getServiceTypeName(
+              svc.name,
+            )}.ActionParams<'${actionName}'>>(),`;
+          },
+        );
+      }
+      cpSchemaFile += `},`;
     });
-  });
 
-  const metaSchema = JSON.parse(rawMetaSchema);
+    cpSchemaFile += '}\n';
 
-  let schemaFileContent = 'export default ';
-  schemaFileContent += rawMetaSchema;
+    cpSchemaFile += 'console.log(JSON.stringify(meta));';
 
-  await formatAndSave(
-    schemaFileContent,
-    `${options.rootDir}/${options.outputDir}/services.schema.ts`,
-  );
+    const cpSchema = cp.spawn(
+      `${path.join('node_modules', '.bin', 'ts-node')}`,
+      ['-e', cpSchemaFile],
+    );
+
+    let rawMetaSchema = '';
+
+    cpSchema.stdout.on('data', data => {
+      rawMetaSchema += data;
+    });
+
+    cpSchema.stderr.on('data', data => {
+      console.error(`stderr: ${data}`);
+    });
+
+    await new Promise(resolve => {
+      cpSchema.on('close', code => {
+        resolve();
+      });
+    });
+
+    let schemaFileContent = 'export default ';
+    schemaFileContent += rawMetaSchema;
+
+    await formatAndSave(
+      schemaFileContent,
+      path.join(outputDirFs, 'actions.schema.ts'),
+    );
+  }
 }
 
 export async function generateBrokerWatch(options: GenerateBrokerOptions) {

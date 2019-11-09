@@ -6,6 +6,13 @@ export default {
       account: { type: 'object', props: { id: { type: 'string' } } },
     },
   },
+  'v1.api': {
+    request: { req: { type: 'any' }, res: { type: 'any' } },
+    context: {
+      user: { type: 'object', props: { id: { type: 'string' } } },
+      account: { type: 'object', props: { id: { type: 'string' } } },
+    },
+  },
   user: {
     create: [
       {

@@ -1,4 +1,4 @@
-module.exports = {
+exports = {
   ...require('moleculer'),
   eventName: function(name) {
     return name;

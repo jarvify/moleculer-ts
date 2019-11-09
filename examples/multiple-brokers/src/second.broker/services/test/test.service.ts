@@ -1,5 +1,6 @@
 import { Service, Action, Event, Method } from 'moleculer-decorators';
 import * as Broker from '@second.broker/moleculer';
+
 import {
   TestServiceTypes,
   BrokerServiceTypes,

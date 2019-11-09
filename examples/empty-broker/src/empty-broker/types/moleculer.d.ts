@@ -2,15 +2,22 @@ import {
   ServiceBroker as MyBroker,
   ServiceNames,
   ServiceEventNames,
-} from './types/broker.types';
+} from './broker.types';
+
+// MyBroker custom & generated types
+type EventName = (name: ServiceEventNames) => string;
 
 type ServiceNamesGroup =
   | ServiceNames
   | ServiceNames[]
   | Moleculer.GenericObject & { name: ServiceNames }[];
 
-type EventName = (name: ServiceEventNames) => string;
+type MyBrokerCall = MyBroker['call'];
+type MyBrokerEmit = MyBroker['emit'];
+type MyBrokerBroadcast = MyBroker['emit'];
+type MyBrokerBroadcastLocal = MyBroker['emit'];
 
+// Moleculer types
 declare namespace Moleculer {
   const eventName: EventName;
 
@@ -148,9 +155,9 @@ declare namespace Moleculer {
     cachedResult: boolean;
 
     setParams(newParams: P, cloning?: boolean): void;
-    call: MyBroker['call'];
-    emit: MyBroker['emit'];
-    broadcast: MyBroker['broadcast'];
+    call: MyBrokerCall;
+    emit: MyBrokerEmit;
+    broadcast: MyBrokerBroadcast;
 
     static create(
       broker: ServiceBroker,
@@ -537,7 +544,7 @@ declare namespace Moleculer {
      *
      * @memberof ServiceBroker
      */
-    call: MyBroker['call'];
+    call: MyBrokerCall;
 
     /**
      * Multiple action calls.
@@ -585,7 +592,7 @@ declare namespace Moleculer {
      *
      * @memberof ServiceBroker
      */
-    emit: MyBroker['emit'];
+    emit: MyBrokerEmit;
 
     /**
      * Emit an event for all local & remote services
@@ -597,7 +604,7 @@ declare namespace Moleculer {
      *
      * @memberof ServiceBroker
      */
-    broadcast: MyBroker['broadcast'];
+    broadcast: MyBrokerBroadcast;
 
     /**
      * Emit an event for all local services
@@ -609,7 +616,7 @@ declare namespace Moleculer {
      *
      * @memberof ServiceBroker
      */
-    broadcastLocal: MyBroker['broadcastLocal'];
+    broadcastLocal: MyBrokerBroadcastLocal;
 
     ping(): PromiseLike<PongResponses>;
     ping(nodeID: string, timeout?: number): PromiseLike<PongResponses>;
