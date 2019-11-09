@@ -376,7 +376,8 @@ export async function generateBroker(options: GenerateBrokerOptions) {
     });
 
     await new Promise(resolve => {
-      cpSchema.on('close', code => {
+      // @TODO investigate not flushing output
+      cpSchema.on('exit', code => {
         resolve();
       });
     });

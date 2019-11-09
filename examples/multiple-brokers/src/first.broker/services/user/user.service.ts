@@ -10,7 +10,13 @@ interface UserService {
 })
 class UserService extends Broker.Service<{}>
   implements UserServiceTypes.ServiceInterface {
-  @Action()
+  @Action({
+    params: {
+      id: { type: 'number', positive: true, integer: true },
+      name: { type: 'string', min: 3, max: 255 },
+      status: 'boolean', // short-hand def
+    },
+  })
   async create(
     ctx: Broker.Context<UserServiceTypes.ActionParams<'create'>>,
   ): Promise<UserServiceTypes.ActionReturn<'create'>> {
