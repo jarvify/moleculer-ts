@@ -65,7 +65,6 @@
 
     "plugins": [
       { "transform": "ts-transformer-enumerate/transformer" },
-      { "transform": "ts-transformer-json-schema/transformer" },
       { "transform": "typescript-transform-paths" }
     ]
   },
