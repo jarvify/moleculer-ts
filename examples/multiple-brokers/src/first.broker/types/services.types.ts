@@ -9,7 +9,7 @@ declare module '../services/api/api.service.types' {
   type EventParams<
     T extends MoleculerTs.GetNames<ApiServiceTypes.Events>
   > = MoleculerTs.GetParamsStrict<ApiServiceTypes.Events, T>;
-  type ServiceInterface = MoleculerTs.GetServiceInterface<
+  type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<
     ApiServiceTypes.OwnActions
   >;
 }
@@ -23,7 +23,7 @@ declare module '../services/api/v1.api.service.types' {
   type EventParams<
     T extends MoleculerTs.GetNames<V1apiServiceTypes.Events>
   > = MoleculerTs.GetParamsStrict<V1apiServiceTypes.Events, T>;
-  type ServiceInterface = MoleculerTs.GetServiceInterface<
+  type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<
     V1apiServiceTypes.OwnActions
   >;
 }
@@ -37,7 +37,7 @@ declare module '../services/user/user.service.types' {
   type EventParams<
     T extends MoleculerTs.GetNames<UserServiceTypes.Events>
   > = MoleculerTs.GetParamsStrict<UserServiceTypes.Events, T>;
-  type ServiceInterface = MoleculerTs.GetServiceInterface<
+  type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<
     UserServiceTypes.OwnActions
   >;
 }

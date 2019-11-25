@@ -11,10 +11,22 @@ export interface ServiceBroker {
   ): PromiseLike<Services.ApiServiceTypes.Actions[0]['out']>;
 
   call(
-    actionName: 'api.context',
+    actionName: 'api.request',
     params: Services.ApiServiceTypes.Actions[1]['in'],
     opts?: Broker.CallingOptions,
   ): PromiseLike<Services.ApiServiceTypes.Actions[1]['out']>;
+
+  call(
+    actionName: 'api.request',
+    params: Services.ApiServiceTypes.Actions[2]['in'],
+    opts?: Broker.CallingOptions,
+  ): PromiseLike<Services.ApiServiceTypes.Actions[2]['out']>;
+
+  call(
+    actionName: 'api.context',
+    params: Services.ApiServiceTypes.Actions[3]['in'],
+    opts?: Broker.CallingOptions,
+  ): PromiseLike<Services.ApiServiceTypes.Actions[3]['out']>;
 
   call(
     actionName: 'v1.api.request',

@@ -8,8 +8,6 @@ import cp from 'child_process';
 type GenerateBrokerOptions = {
   serviceTypesPattern: string;
   outputDir: string;
-  generateActionsSchema?: boolean;
-  actionSchemaDepth?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
   isServiceName?: (name: string) => boolean;
 };
 
@@ -61,11 +59,6 @@ function getRelativePathForImport(from: string, to: string) {
 }
 
 export async function generateBroker(options: GenerateBrokerOptions) {
-  if (typeof options.generateActionsSchema !== 'boolean') {
-    options.generateActionsSchema = true;
-  }
-  const actionSchemaDepth = options.actionSchemaDepth || 3;
-
   const isServiceName =
     options.isServiceName ||
     function(name: string) {
@@ -116,7 +109,7 @@ export async function generateBroker(options: GenerateBrokerOptions) {
         )}.Events>> = MoleculerTs.GetParamsStrict<${getServiceTypeName(
       svc.name,
     )}.Events, T>;
-        type ServiceInterface = MoleculerTs.GetServiceInterface<${getServiceTypeName(
+        type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<${getServiceTypeName(
           svc.name,
         )}.OwnActions>;
       }`;
@@ -327,70 +320,6 @@ export async function generateBroker(options: GenerateBrokerOptions) {
     brokerTypesFileContent,
     path.join(outputDirFs, 'broker.types.ts'),
   );
-
-  // actions schema
-  if (options.generateActionsSchema) {
-    // @TODO break to action chunks, implement queue 100 ?
-    // if fail set wrong type, so we can print warning!
-    let cpSchemaFile = ``;
-    cpSchemaFile += `
-   import * as Services from '${outputDirImport}/services.types';
-   import { schema } from 'ts-transformer-json-schema';
-   import { enumerate } from 'ts-transformer-enumerate';
-   ${importMoleculerTs}\n;
- `;
-
-    cpSchemaFile += ``;
-
-    cpSchemaFile += 'const meta: any = {';
-
-    services.forEach(svc => {
-      cpSchemaFile += `'${svc.name}': {`;
-      if (meta[getServiceTypeName(svc.name)].actionsLength > 0) {
-        Object.values(meta[getServiceTypeName(svc.name)].actionsEnum).forEach(
-          actionName => {
-            cpSchemaFile += `'${actionName}': schema<MoleculerTs.FiniteL${actionSchemaDepth}<Services.${getServiceTypeName(
-              svc.name,
-            )}.ActionParams<'${actionName}'>>>(),`;
-          },
-        );
-      }
-      cpSchemaFile += `},`;
-    });
-
-    cpSchemaFile += '}\n';
-
-    cpSchemaFile += 'console.log(JSON.stringify(meta));';
-
-    const cpSchema = cp.spawn(
-      `${path.join('node_modules', '.bin', 'ts-node')}`,
-      ['-e', cpSchemaFile],
-    );
-
-    let rawMetaSchema = '';
-
-    cpSchema.stdout.on('data', data => {
-      rawMetaSchema += data;
-    });
-
-    cpSchema.stderr.on('data', data => {
-      console.error(`stderr: ${data}`);
-    });
-
-    await new Promise(resolve => {
-      cpSchema.on('close', code => {
-        resolve();
-      });
-    });
-
-    let schemaFileContent = 'export default ';
-    schemaFileContent += rawMetaSchema;
-
-    await formatAndSave(
-      schemaFileContent,
-      path.join(outputDirFs, 'actions.schema.ts'),
-    );
-  }
 }
 
 export async function generateBrokerWatch(options: GenerateBrokerOptions) {

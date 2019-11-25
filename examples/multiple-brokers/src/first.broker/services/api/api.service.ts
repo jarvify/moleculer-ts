@@ -1,6 +1,8 @@
 import { Service, Action, Event, Method } from 'moleculer-decorators';
 import * as Broker from '@first.broker/moleculer';
-import { ApiServiceTypes, UserServiceTypes } from '@first.broker/types';
+import { a, UserServiceTypes } from '@first.broker/types';
+
+let c = ApiServiceTypes.test;
 
 interface ApiService {
   name: typeof ApiServiceTypes.name;
@@ -10,7 +12,7 @@ interface ApiService {
   mixins: [],
 })
 class ApiService extends Broker.Service
-  implements ApiServiceTypes.ServiceInterface {
+  implements ApiServiceTypes.ServiceOwnActions {
   settings: any;
   @Event({
     name: Broker.eventName('user.nodeChange'),
@@ -47,20 +49,6 @@ class ApiService extends Broker.Service
     const params = ctx.params;
     params.account.id;
     params.user.id;
-
-    ctx.emit('user.nodeChange', {
-      id: 'a',
-      email: 'a',
-      password: 'a',
-      name: 'a',
-    });
-
-    ctx.broadcast('user.nodeChange', {
-      id: 'a',
-      email: 'a',
-      password: 'a',
-      name: 'a',
-    });
 
     return 10;
   }

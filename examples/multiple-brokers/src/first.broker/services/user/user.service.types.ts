@@ -7,7 +7,7 @@ type User = {
   name: string;
   email: string;
   password: string;
-  arr: User[];
+  arr?: User[];
 };
 
 export type OwnActions = [

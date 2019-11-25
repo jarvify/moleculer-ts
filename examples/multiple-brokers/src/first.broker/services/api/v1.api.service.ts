@@ -11,7 +11,7 @@ interface V1ApiService {
   mixins: [],
 })
 class V1ApiService extends Broker.Service<{}>
-  implements V1apiServiceTypes.ServiceInterface {
+  implements V1apiServiceTypes.ServiceOwnActions {
   settings: any;
   @Event({
     name: Broker.eventName('user.nodeChange'),
@@ -48,20 +48,6 @@ class V1ApiService extends Broker.Service<{}>
     const params = ctx.params;
     params.account.id;
     params.user.id;
-
-    ctx.emit('user.nodeChange', {
-      id: 'a',
-      email: 'a',
-      password: 'a',
-      name: 'a',
-    });
-
-    ctx.broadcast('user.nodeChange', {
-      id: 'a',
-      email: 'a',
-      password: 'a',
-      name: 'a',
-    });
 
     return 10;
   }

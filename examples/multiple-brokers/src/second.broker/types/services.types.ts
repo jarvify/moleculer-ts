@@ -9,7 +9,7 @@ declare module '../services/internal/broker.service.types' {
   type EventParams<
     T extends MoleculerTs.GetNames<BrokerServiceTypes.Events>
   > = MoleculerTs.GetParamsStrict<BrokerServiceTypes.Events, T>;
-  type ServiceInterface = MoleculerTs.GetServiceInterface<
+  type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<
     BrokerServiceTypes.OwnActions
   >;
 }
@@ -23,7 +23,7 @@ declare module '../services/internal/circuit-breaker.service.types' {
   type EventParams<
     T extends MoleculerTs.GetNames<CircuitbreakerServiceTypes.Events>
   > = MoleculerTs.GetParamsStrict<CircuitbreakerServiceTypes.Events, T>;
-  type ServiceInterface = MoleculerTs.GetServiceInterface<
+  type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<
     CircuitbreakerServiceTypes.OwnActions
   >;
 }
@@ -37,7 +37,7 @@ declare module '../services/internal/node.service.types' {
   type EventParams<
     T extends MoleculerTs.GetNames<NodeServiceTypes.Events>
   > = MoleculerTs.GetParamsStrict<NodeServiceTypes.Events, T>;
-  type ServiceInterface = MoleculerTs.GetServiceInterface<
+  type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<
     NodeServiceTypes.OwnActions
   >;
 }
@@ -51,7 +51,7 @@ declare module '../services/internal/services.service.types' {
   type EventParams<
     T extends MoleculerTs.GetNames<ServicesServiceTypes.Events>
   > = MoleculerTs.GetParamsStrict<ServicesServiceTypes.Events, T>;
-  type ServiceInterface = MoleculerTs.GetServiceInterface<
+  type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<
     ServicesServiceTypes.OwnActions
   >;
 }
@@ -65,7 +65,7 @@ declare module '../services/internal/transporter.service.types' {
   type EventParams<
     T extends MoleculerTs.GetNames<TransporterServiceTypes.Events>
   > = MoleculerTs.GetParamsStrict<TransporterServiceTypes.Events, T>;
-  type ServiceInterface = MoleculerTs.GetServiceInterface<
+  type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<
     TransporterServiceTypes.OwnActions
   >;
 }
@@ -79,7 +79,7 @@ declare module '../services/test/test.service.types' {
   type EventParams<
     T extends MoleculerTs.GetNames<TestServiceTypes.Events>
   > = MoleculerTs.GetParamsStrict<TestServiceTypes.Events, T>;
-  type ServiceInterface = MoleculerTs.GetServiceInterface<
+  type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<
     TestServiceTypes.OwnActions
   >;
 }

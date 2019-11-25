@@ -9,7 +9,7 @@ interface UserService {
   name: UserServiceTypes.name,
 })
 class UserService extends Broker.Service<{}>
-  implements UserServiceTypes.ServiceInterface {
+  implements UserServiceTypes.ServiceOwnActions {
   @Action({
     params: {
       id: { type: 'number', positive: true, integer: true },
@@ -20,16 +20,6 @@ class UserService extends Broker.Service<{}>
   async create(
     ctx: Broker.Context<UserServiceTypes.ActionParams<'create'>>,
   ): Promise<UserServiceTypes.ActionReturn<'create'>> {
-    if (0) {
-      return 10;
-    }
-
-    if (1) {
-      return {
-        name: 'a',
-      };
-    }
-
     return {
       id: 'a',
       email: 'a',
