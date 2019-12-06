@@ -249,6 +249,10 @@ export async function generateBroker(options: GenerateBrokerOptions) {
 
   type StrictObject<P, A> = A & { [K in Exclude<keyof P, keyof A>]: never };
 
+  type PickByParam<P, A> = {
+    [K in keyof P]: K extends keyof A ? A[K] : never;
+  };
+
   export interface ServiceBroker {
     call<
     T extends ServiceActionNames,
@@ -360,7 +364,7 @@ export async function generateBroker(options: GenerateBrokerOptions) {
     brokerTypesFileContent += `'${name}': `;
 
     callObj[name].overloads.map(one => {
-      brokerTypesFileContent += ` ${one.in} extends P ? ${one.out} : `;
+      brokerTypesFileContent += ` P extends PickByParam<P,${one.in}> ? ${one.out} : `;
     });
 
     brokerTypesFileContent += ' never; ';

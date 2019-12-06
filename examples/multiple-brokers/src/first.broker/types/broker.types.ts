@@ -4,6 +4,10 @@ import * as Services from './services.types';
 
 type StrictObject<P, A> = A & { [K in Exclude<keyof P, keyof A>]: never };
 
+type PickByParam<P, A> = {
+  [K in keyof P]: K extends keyof A ? A[K] : never;
+};
+
 export interface ServiceBroker {
   call<T extends ServiceActionNames, P extends GetCallParams<P>[T]>(
     actionName: T,
@@ -87,35 +91,56 @@ type GetCallParams<P> = {
       >;
 };
 type GetCallReturn<P> = {
-  'api.request': Services.ApiServiceTypes.Actions[0]['in'] extends P
+  'api.request': P extends PickByParam<
+    P,
+    Services.ApiServiceTypes.Actions[0]['in']
+  >
     ? Services.ApiServiceTypes.Actions[0]['out']
-    : Services.ApiServiceTypes.Actions[1]['in'] extends P
+    : P extends PickByParam<P, Services.ApiServiceTypes.Actions[1]['in']>
     ? Services.ApiServiceTypes.Actions[1]['out']
-    : Services.ApiServiceTypes.Actions[2]['in'] extends P
+    : P extends PickByParam<P, Services.ApiServiceTypes.Actions[2]['in']>
     ? Services.ApiServiceTypes.Actions[2]['out']
     : never;
-  'api.context': Services.ApiServiceTypes.Actions[3]['in'] extends P
+  'api.context': P extends PickByParam<
+    P,
+    Services.ApiServiceTypes.Actions[3]['in']
+  >
     ? Services.ApiServiceTypes.Actions[3]['out']
     : never;
-  'v1.api.request': Services.V1apiServiceTypes.Actions[0]['in'] extends P
+  'v1.api.request': P extends PickByParam<
+    P,
+    Services.V1apiServiceTypes.Actions[0]['in']
+  >
     ? Services.V1apiServiceTypes.Actions[0]['out']
     : never;
-  'v1.api.context': Services.V1apiServiceTypes.Actions[1]['in'] extends P
+  'v1.api.context': P extends PickByParam<
+    P,
+    Services.V1apiServiceTypes.Actions[1]['in']
+  >
     ? Services.V1apiServiceTypes.Actions[1]['out']
     : never;
-  'user.create': Services.UserServiceTypes.Actions[0]['in'] extends P
+  'user.create': P extends PickByParam<
+    P,
+    Services.UserServiceTypes.Actions[0]['in']
+  >
     ? Services.UserServiceTypes.Actions[0]['out']
-    : Services.UserServiceTypes.Actions[1]['in'] extends P
+    : P extends PickByParam<P, Services.UserServiceTypes.Actions[1]['in']>
     ? Services.UserServiceTypes.Actions[1]['out']
-    : Services.UserServiceTypes.Actions[2]['in'] extends P
+    : P extends PickByParam<P, Services.UserServiceTypes.Actions[2]['in']>
     ? Services.UserServiceTypes.Actions[2]['out']
     : never;
-  'user.get': Services.UserServiceTypes.Actions[3]['in'] extends P
+  'user.get': P extends PickByParam<
+    P,
+    Services.UserServiceTypes.Actions[3]['in']
+  >
     ? Services.UserServiceTypes.Actions[3]['out']
-    : Services.UserServiceTypes.Actions[4]['in'] extends P
+    : P extends PickByParam<P, Services.UserServiceTypes.Actions[4]['in']>
     ? Services.UserServiceTypes.Actions[4]['out']
     : never;
-  'user.delete': Services.UserServiceTypes.Actions[5]['in'] extends P
+  'user.delete': P extends PickByParam<
+    P,
+    Services.UserServiceTypes.Actions[5]['in']
+  >
     ? Services.UserServiceTypes.Actions[5]['out']
     : never;
 };

@@ -4,6 +4,10 @@ import * as Services from './services.types';
 
 type StrictObject<P, A> = A & { [K in Exclude<keyof P, keyof A>]: never };
 
+type PickByParam<P, A> = {
+  [K in keyof P]: K extends keyof A ? A[K] : never;
+};
+
 export interface ServiceBroker {
   call<T extends ServiceActionNames, P extends GetCallParams<P>[T]>(
     actionName: T,
