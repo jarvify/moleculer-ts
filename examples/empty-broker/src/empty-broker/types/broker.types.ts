@@ -2,22 +2,16 @@ import * as MoleculerTs from 'moleculer-ts';
 import * as Broker from './moleculer';
 import * as Services from './services.types';
 
-type StrictObject<P, A> = A & { [K in Exclude<keyof P, keyof A>]: never };
-
-type PickByParam<P, A> = {
-  [K in keyof P]: K extends keyof A ? A[K] : never;
-};
-
 export interface ServiceBroker {
-  call<T extends ServiceActionNames, P extends GetCallParams<P>[T]>(
+  call<T extends ServiceActionNames>(
     actionName: T,
-    params: P,
+    params: GetCallParams[T],
     opts?: Broker.CallingOptions,
-  ): PromiseLike<GetCallReturn<P>[T]>;
+  ): GetCallReturn[T];
 
-  emit<T extends ServiceEventNames, P extends GetEmitParams<P>[T]>(
+  emit<T extends ServiceEventNames>(
     eventName: T,
-    payload: P,
+    payload: GetEmitParams[T],
     groups?: ServiceNamesEmitGroup,
   ): void;
 
@@ -25,9 +19,9 @@ export interface ServiceBroker {
   broadcastLocal: ServiceBroker['emit'];
 }
 
-type GetCallParams<P> = {};
-type GetCallReturn<P> = {};
-type GetEmitParams<P> = {};
+type GetCallParams = {};
+type GetCallReturn = {};
+type GetEmitParams = {};
 export type ServiceNames = Exclude<never, never>;
 export type ServiceNamesEmitGroup = ServiceNames | ServiceNames[];
 export type ServiceEventNames = Exclude<never, never>;
