@@ -247,25 +247,18 @@ export async function generateBroker(options: GenerateBrokerOptions) {
   import * as Broker from './moleculer';
   import * as Services from './services.types';
 
-  type StrictObject<P, A> = A & { [K in Exclude<keyof P, keyof A>]: never };
-
-  type PickByParam<P, A> = {
-    [K in keyof P]: K extends keyof A ? A[K] : never;
-  };
-
   export interface ServiceBroker {
     call<
     T extends ServiceActionNames,
-    P extends GetCallParams<P>[T]
     >(
       actionName: T,
-      params: P,
+      params: GetCallParams[T],
       opts?: Broker.CallingOptions,
-    ): PromiseLike<GetCallReturn<P>[T]>;
+    ): GetCallReturn[T];
 
-    emit<T extends ServiceEventNames, P extends GetEmitParams<P>[T]>(
+    emit<T extends ServiceEventNames>(
       eventName: T,
-      payload: P,
+      payload: GetEmitParams[T],
       groups?: ServiceNamesEmitGroup,
     ): void;
 
@@ -333,48 +326,47 @@ export async function generateBroker(options: GenerateBrokerOptions) {
     'export type ServiceActionNames = Exclude<never';
 
   brokerTypesFileContent += `
-  type GetCallParams<P> = { `;
+  type GetCallParams = { `;
   Object.keys(callObj).map(name => {
     brokerTypesServiceActionNames += ` | '${name}'`;
 
-    const overloadUnionStrict = `MoleculerTs.Union.Strict<${callObj[
-      name
-    ].overloads
-      .map(one => one.in)
-      .join(' | ')}
-      >`;
-
     brokerTypesFileContent += `'${name}': `;
 
-    callObj[name].overloads.map(one => {
-      brokerTypesFileContent += ` ${one.in} extends P ? ${one.in} : `;
-    });
+    if (callObj[name].overloads.length > 1) {
+      throw new Error(
+        `${name} has multiple overloads, please make sure u have only one declaration.`,
+      );
+    }
 
-    brokerTypesFileContent += `StrictObject<
-      P,
-      ${overloadUnionStrict}
-    >; `;
+    callObj[name].overloads.map(one => {
+      brokerTypesFileContent += `${one.in}; `;
+    });
   });
   brokerTypesFileContent += '}';
   brokerTypesServiceActionNames += ',never>';
 
   brokerTypesFileContent += `
-  type GetCallReturn<P> = { `;
+  type GetCallReturn = { `;
   Object.keys(callObj).map(name => {
     brokerTypesFileContent += `'${name}': `;
 
-    callObj[name].overloads.map(one => {
-      brokerTypesFileContent += ` P extends PickByParam<P,${one.in}> ? ${one.out} : `;
-    });
+    if (callObj[name].overloads.length > 1) {
+      throw new Error(
+        `${name} has multiple overloads, please make sure u have only one declaration.`,
+      );
+    }
 
-    brokerTypesFileContent += ' never; ';
+    callObj[name].overloads.map(one => {
+      brokerTypesFileContent += `${one.out}; `;
+    });
   });
   brokerTypesFileContent += '}';
 
+  // @TODO can events have overloads ? i think yes !
   let brokerTypesServiceEventsNames =
     'export type ServiceEventNames = Exclude<never';
   brokerTypesFileContent += `
-  type GetEmitParams<P> = { `;
+  type GetEmitParams= { `;
   Object.keys(emitObj).map(name => {
     brokerTypesServiceEventsNames += ` | '${name}'`;
 
@@ -383,18 +375,9 @@ export async function generateBroker(options: GenerateBrokerOptions) {
     ].overloads
       .map(one => one.in)
       .join(' | ')}
-      >`;
+      >;`;
 
-    brokerTypesFileContent += `'${name}': `;
-
-    emitObj[name].overloads.map(one => {
-      brokerTypesFileContent += ` ${one.in} extends P ? ${one.in} : `;
-    });
-
-    brokerTypesFileContent += `StrictObject<
-        P,
-        ${overloadUnionStrict}
-      >; `;
+    brokerTypesFileContent += `'${name}': ${overloadUnionStrict} `;
   });
   brokerTypesFileContent += '}';
   brokerTypesServiceEventsNames += ',never>';

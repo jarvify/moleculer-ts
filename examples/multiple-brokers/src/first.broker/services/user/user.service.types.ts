@@ -11,10 +11,7 @@ type User = {
 };
 
 export type OwnActions = [
-  Action<'create', { name: string }, User>,
-  Action<'create', { name: string; $info: string }, User>,
   Action<'create', User, { id: string }>,
-  Action<'get', { id: string }, User>,
   Action<'get', { email: string }, User>,
   Action<'delete', { id: string }, User>,
 ];

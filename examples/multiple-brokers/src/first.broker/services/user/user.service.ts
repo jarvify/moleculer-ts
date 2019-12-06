@@ -22,9 +22,6 @@ class UserService extends Broker.Service<{}>
   ): Promise<UserServiceTypes.ActionReturn<'create'>> {
     return {
       id: 'a',
-      email: 'a',
-      password: 'a',
-      name: 'a',
     };
   }
 

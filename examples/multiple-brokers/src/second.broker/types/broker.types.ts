@@ -2,22 +2,16 @@ import * as MoleculerTs from 'moleculer-ts';
 import * as Broker from './moleculer';
 import * as Services from './services.types';
 
-type StrictObject<P, A> = A & { [K in Exclude<keyof P, keyof A>]: never };
-
-type PickByParam<P, A> = {
-  [K in keyof P]: K extends keyof A ? A[K] : never;
-};
-
 export interface ServiceBroker {
-  call<T extends ServiceActionNames, P extends GetCallParams<P>[T]>(
+  call<T extends ServiceActionNames>(
     actionName: T,
-    params: P,
+    params: GetCallParams[T],
     opts?: Broker.CallingOptions,
-  ): PromiseLike<GetCallReturn<P>[T]>;
+  ): GetCallReturn[T];
 
-  emit<T extends ServiceEventNames, P extends GetEmitParams<P>[T]>(
+  emit<T extends ServiceEventNames>(
     eventName: T,
-    payload: P,
+    payload: GetEmitParams[T],
     groups?: ServiceNamesEmitGroup,
   ): void;
 
@@ -25,79 +19,39 @@ export interface ServiceBroker {
   broadcastLocal: ServiceBroker['emit'];
 }
 
-type GetCallParams<P> = {};
-type GetCallReturn<P> = {};
-type GetEmitParams<P> = {
-  '$broker.started': Services.BrokerServiceTypes.Events[0]['in'] extends P
-    ? Services.BrokerServiceTypes.Events[0]['in']
-    : StrictObject<
-        P,
-        MoleculerTs.Union.Strict<Services.BrokerServiceTypes.Events[0]['in']>
-      >;
-  '$circuit-breaker.opened': Services.CircuitbreakerServiceTypes.Events[0]['in'] extends P
-    ? Services.CircuitbreakerServiceTypes.Events[0]['in']
-    : StrictObject<
-        P,
-        MoleculerTs.Union.Strict<
-          Services.CircuitbreakerServiceTypes.Events[0]['in']
-        >
-      >;
-  '$circuit-breaker.half-opened': Services.CircuitbreakerServiceTypes.Events[1]['in'] extends P
-    ? Services.CircuitbreakerServiceTypes.Events[1]['in']
-    : StrictObject<
-        P,
-        MoleculerTs.Union.Strict<
-          Services.CircuitbreakerServiceTypes.Events[1]['in']
-        >
-      >;
-  '$circuit-breaker.closed': Services.CircuitbreakerServiceTypes.Events[2]['in'] extends P
-    ? Services.CircuitbreakerServiceTypes.Events[2]['in']
-    : StrictObject<
-        P,
-        MoleculerTs.Union.Strict<
-          Services.CircuitbreakerServiceTypes.Events[2]['in']
-        >
-      >;
-  '$node.connected': Services.NodeServiceTypes.Events[0]['in'] extends P
-    ? Services.NodeServiceTypes.Events[0]['in']
-    : StrictObject<
-        P,
-        MoleculerTs.Union.Strict<Services.NodeServiceTypes.Events[0]['in']>
-      >;
-  '$node.updated': Services.NodeServiceTypes.Events[1]['in'] extends P
-    ? Services.NodeServiceTypes.Events[1]['in']
-    : StrictObject<
-        P,
-        MoleculerTs.Union.Strict<Services.NodeServiceTypes.Events[1]['in']>
-      >;
-  '$node.disconnected': Services.NodeServiceTypes.Events[2]['in'] extends P
-    ? Services.NodeServiceTypes.Events[2]['in']
-    : StrictObject<
-        P,
-        MoleculerTs.Union.Strict<Services.NodeServiceTypes.Events[2]['in']>
-      >;
-  '$services.changed': Services.ServicesServiceTypes.Events[0]['in'] extends P
-    ? Services.ServicesServiceTypes.Events[0]['in']
-    : StrictObject<
-        P,
-        MoleculerTs.Union.Strict<Services.ServicesServiceTypes.Events[0]['in']>
-      >;
-  '$transporter.connected': Services.TransporterServiceTypes.Events[0]['in'] extends P
-    ? Services.TransporterServiceTypes.Events[0]['in']
-    : StrictObject<
-        P,
-        MoleculerTs.Union.Strict<
-          Services.TransporterServiceTypes.Events[0]['in']
-        >
-      >;
-  '$transporter.disconnected': Services.TransporterServiceTypes.Events[1]['in'] extends P
-    ? Services.TransporterServiceTypes.Events[1]['in']
-    : StrictObject<
-        P,
-        MoleculerTs.Union.Strict<
-          Services.TransporterServiceTypes.Events[1]['in']
-        >
-      >;
+type GetCallParams = {};
+type GetCallReturn = {};
+type GetEmitParams = {
+  '$broker.started': MoleculerTs.Union.Strict<
+    Services.BrokerServiceTypes.Events[0]['in']
+  >;
+  '$circuit-breaker.opened': MoleculerTs.Union.Strict<
+    Services.CircuitbreakerServiceTypes.Events[0]['in']
+  >;
+  '$circuit-breaker.half-opened': MoleculerTs.Union.Strict<
+    Services.CircuitbreakerServiceTypes.Events[1]['in']
+  >;
+  '$circuit-breaker.closed': MoleculerTs.Union.Strict<
+    Services.CircuitbreakerServiceTypes.Events[2]['in']
+  >;
+  '$node.connected': MoleculerTs.Union.Strict<
+    Services.NodeServiceTypes.Events[0]['in']
+  >;
+  '$node.updated': MoleculerTs.Union.Strict<
+    Services.NodeServiceTypes.Events[1]['in']
+  >;
+  '$node.disconnected': MoleculerTs.Union.Strict<
+    Services.NodeServiceTypes.Events[2]['in']
+  >;
+  '$services.changed': MoleculerTs.Union.Strict<
+    Services.ServicesServiceTypes.Events[0]['in']
+  >;
+  '$transporter.connected': MoleculerTs.Union.Strict<
+    Services.TransporterServiceTypes.Events[0]['in']
+  >;
+  '$transporter.disconnected': MoleculerTs.Union.Strict<
+    Services.TransporterServiceTypes.Events[1]['in']
+  >;
 };
 export type ServiceNames = Exclude<never | 'test', never>;
 export type ServiceNamesEmitGroup = ServiceNames | ServiceNames[];

@@ -32,8 +32,12 @@ class ApiService extends Broker.Service
     params.req;
     params.res;
 
-    const a = await ctx.call('user.create', { name: 'a' });
-    const b = await ctx.call('user.create', { name: 'a', $info: 'a' });
+    const a = await ctx.call('user.create', {
+      email: 'a',
+      id: 'a',
+      name: 'a',
+      password: 'a',
+    });
 
     ctx.call('user.delete', { id: 'a' });
 

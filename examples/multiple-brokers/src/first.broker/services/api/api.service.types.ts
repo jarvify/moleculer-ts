@@ -4,8 +4,6 @@ export const name: 'api' = 'api';
 
 export type OwnActions = [
   Action<'request', { req: any; res: any }, string>,
-  Action<'request', { [key: string]: any }, string>,
-  Action<'request', { test: any[] }, string>,
   Action<'context', { user: { id: string }; account: { id: string } }, number>,
 ];
 
