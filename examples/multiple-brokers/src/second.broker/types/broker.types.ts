@@ -1,75 +1,103 @@
+import * as MoleculerTs from 'moleculer-ts';
 import * as Broker from './moleculer';
 import * as Services from './services.types';
+
+type StrictObject<P, A> = A & { [K in Exclude<keyof P, keyof A>]: never };
+
 export interface ServiceBroker {
-  call(actionName: never): never;
-  emit(actionName: never): never;
+  call<T extends ServiceActionNames, P extends GetCallParams<P>[T]>(
+    actionName: T,
+    params: P,
+    opts?: Broker.CallingOptions,
+  ): PromiseLike<GetCallReturn<P>[T]>;
 
-  emit(
-    eventName: '$broker.started',
-    payload: Services.BrokerServiceTypes.Events[0]['in'],
-    groups?: ServiceNamesEmitGroup,
-  ): void;
-
-  emit(
-    eventName: '$circuit-breaker.opened',
-    payload: Services.CircuitbreakerServiceTypes.Events[0]['in'],
-    groups?: ServiceNamesEmitGroup,
-  ): void;
-
-  emit(
-    eventName: '$circuit-breaker.half-opened',
-    payload: Services.CircuitbreakerServiceTypes.Events[1]['in'],
-    groups?: ServiceNamesEmitGroup,
-  ): void;
-
-  emit(
-    eventName: '$circuit-breaker.closed',
-    payload: Services.CircuitbreakerServiceTypes.Events[2]['in'],
-    groups?: ServiceNamesEmitGroup,
-  ): void;
-
-  emit(
-    eventName: '$node.connected',
-    payload: Services.NodeServiceTypes.Events[0]['in'],
-    groups?: ServiceNamesEmitGroup,
-  ): void;
-
-  emit(
-    eventName: '$node.updated',
-    payload: Services.NodeServiceTypes.Events[1]['in'],
-    groups?: ServiceNamesEmitGroup,
-  ): void;
-
-  emit(
-    eventName: '$node.disconnected',
-    payload: Services.NodeServiceTypes.Events[2]['in'],
-    groups?: ServiceNamesEmitGroup,
-  ): void;
-
-  emit(
-    eventName: '$services.changed',
-    payload: Services.ServicesServiceTypes.Events[0]['in'],
-    groups?: ServiceNamesEmitGroup,
-  ): void;
-
-  emit(
-    eventName: '$transporter.connected',
-    payload: Services.TransporterServiceTypes.Events[0]['in'],
-    groups?: ServiceNamesEmitGroup,
-  ): void;
-
-  emit(
-    eventName: '$transporter.disconnected',
-    payload: Services.TransporterServiceTypes.Events[1]['in'],
+  emit<T extends ServiceEventNames, P extends GetEmitParams<P>[T]>(
+    eventName: T,
+    payload: P,
     groups?: ServiceNamesEmitGroup,
   ): void;
 
   broadcast: ServiceBroker['emit'];
   broadcastLocal: ServiceBroker['emit'];
 }
-export type ServiceNames = never | 'test';
+
+type GetCallParams<P> = {};
+type GetCallReturn<P> = {};
+type GetEmitParams<P> = {
+  '$broker.started': Services.BrokerServiceTypes.Events[0]['in'] extends P
+    ? Services.BrokerServiceTypes.Events[0]['in']
+    : StrictObject<
+        P,
+        MoleculerTs.Union.Strict<Services.BrokerServiceTypes.Events[0]['in']>
+      >;
+  '$circuit-breaker.opened': Services.CircuitbreakerServiceTypes.Events[0]['in'] extends P
+    ? Services.CircuitbreakerServiceTypes.Events[0]['in']
+    : StrictObject<
+        P,
+        MoleculerTs.Union.Strict<
+          Services.CircuitbreakerServiceTypes.Events[0]['in']
+        >
+      >;
+  '$circuit-breaker.half-opened': Services.CircuitbreakerServiceTypes.Events[1]['in'] extends P
+    ? Services.CircuitbreakerServiceTypes.Events[1]['in']
+    : StrictObject<
+        P,
+        MoleculerTs.Union.Strict<
+          Services.CircuitbreakerServiceTypes.Events[1]['in']
+        >
+      >;
+  '$circuit-breaker.closed': Services.CircuitbreakerServiceTypes.Events[2]['in'] extends P
+    ? Services.CircuitbreakerServiceTypes.Events[2]['in']
+    : StrictObject<
+        P,
+        MoleculerTs.Union.Strict<
+          Services.CircuitbreakerServiceTypes.Events[2]['in']
+        >
+      >;
+  '$node.connected': Services.NodeServiceTypes.Events[0]['in'] extends P
+    ? Services.NodeServiceTypes.Events[0]['in']
+    : StrictObject<
+        P,
+        MoleculerTs.Union.Strict<Services.NodeServiceTypes.Events[0]['in']>
+      >;
+  '$node.updated': Services.NodeServiceTypes.Events[1]['in'] extends P
+    ? Services.NodeServiceTypes.Events[1]['in']
+    : StrictObject<
+        P,
+        MoleculerTs.Union.Strict<Services.NodeServiceTypes.Events[1]['in']>
+      >;
+  '$node.disconnected': Services.NodeServiceTypes.Events[2]['in'] extends P
+    ? Services.NodeServiceTypes.Events[2]['in']
+    : StrictObject<
+        P,
+        MoleculerTs.Union.Strict<Services.NodeServiceTypes.Events[2]['in']>
+      >;
+  '$services.changed': Services.ServicesServiceTypes.Events[0]['in'] extends P
+    ? Services.ServicesServiceTypes.Events[0]['in']
+    : StrictObject<
+        P,
+        MoleculerTs.Union.Strict<Services.ServicesServiceTypes.Events[0]['in']>
+      >;
+  '$transporter.connected': Services.TransporterServiceTypes.Events[0]['in'] extends P
+    ? Services.TransporterServiceTypes.Events[0]['in']
+    : StrictObject<
+        P,
+        MoleculerTs.Union.Strict<
+          Services.TransporterServiceTypes.Events[0]['in']
+        >
+      >;
+  '$transporter.disconnected': Services.TransporterServiceTypes.Events[1]['in'] extends P
+    ? Services.TransporterServiceTypes.Events[1]['in']
+    : StrictObject<
+        P,
+        MoleculerTs.Union.Strict<
+          Services.TransporterServiceTypes.Events[1]['in']
+        >
+      >;
+};
+export type ServiceNames = Exclude<never | 'test', never>;
 export type ServiceNamesEmitGroup = ServiceNames | ServiceNames[];
-export type ServiceEventNames =
+export type ServiceEventNames = Exclude<
   | never
   | '$broker.started'
   | '$circuit-breaker.opened'
@@ -80,4 +108,7 @@ export type ServiceEventNames =
   | '$node.disconnected'
   | '$services.changed'
   | '$transporter.connected'
-  | '$transporter.disconnected';
+  | '$transporter.disconnected',
+  never
+>;
+export type ServiceActionNames = Exclude<never, never>;

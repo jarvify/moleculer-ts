@@ -15,7 +15,7 @@ interface TestService {
   mixins: [],
 })
 class TestService extends Broker.Service
-  implements TestServiceTypes.ServiceInterface {
+  implements TestServiceTypes.ServiceOwnActions {
   settings: any;
 
   @Event({

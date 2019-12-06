@@ -1,6 +1,7 @@
 export * from './utils';
 export { ConcatMultiple } from 'typescript-tuple';
 import { Union } from 'ts-toolbelt';
+export { Union } from 'ts-toolbelt';
 
 type GenericObject = {
   [key: string]: any;

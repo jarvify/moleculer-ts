@@ -130,7 +130,7 @@ declare namespace Moleculer {
   type ServiceActions = { [key: string]: Action | ActionHandler };
   type Actions = ServiceActions;
 
-  class Context<P = null, M = null> {
+  class Context<P = unknown, M = unknown> {
     constructor(broker: ServiceBroker, endpoint: Endpoint);
     id: string;
     broker: ServiceBroker;
@@ -477,10 +477,6 @@ declare namespace Moleculer {
     nodeID: string;
     elapsedTime: number;
     timeDiff: number;
-  }
-
-  interface ServiceBroker {
-    [name: string]: PongResponse;
   }
 
   class ServiceBroker {

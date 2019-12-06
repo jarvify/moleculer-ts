@@ -1,8 +1,6 @@
 import { Service, Action, Event, Method } from 'moleculer-decorators';
 import * as Broker from '@first.broker/moleculer';
-import { a, UserServiceTypes } from '@first.broker/types';
-
-let c = ApiServiceTypes.test;
+import { ApiServiceTypes, UserServiceTypes } from '@first.broker/types';
 
 interface ApiService {
   name: typeof ApiServiceTypes.name;
@@ -54,6 +52,7 @@ class ApiService extends Broker.Service
   }
 
   created() {
+    // this.broker.call('user.create', { name: 'a' });
     this.waitForServices(['api', 'user']);
   }
 }

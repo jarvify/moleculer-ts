@@ -130,7 +130,7 @@ declare namespace Moleculer {
   type ServiceActions = { [key: string]: Action | ActionHandler };
   type Actions = ServiceActions;
 
-  class Context<P = null, M = null> {
+  class Context<P = unknown, M = unknown> {
     constructor(broker: ServiceBroker, endpoint: Endpoint);
     id: string;
     broker: ServiceBroker;

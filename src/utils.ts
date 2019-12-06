@@ -243,77 +243,170 @@ export async function generateBroker(options: GenerateBrokerOptions) {
   // broker type file
   let brokerTypesFileContent = '';
 
-  brokerTypesFileContent += ` import * as Broker from './moleculer';
+  brokerTypesFileContent += `import * as MoleculerTs from 'moleculer-ts';
+  import * as Broker from './moleculer';
   import * as Services from './services.types';
+
+  type StrictObject<P, A> = A & { [K in Exclude<keyof P, keyof A>]: never };
+
   export interface ServiceBroker {
-    call(actionName: never): never;
-    emit(actionName: never): never;  
+    call<
+    T extends ServiceActionNames,
+    P extends GetCallParams<P>[T]
+    >(
+      actionName: T,
+      params: P,
+      opts?: Broker.CallingOptions,
+    ): PromiseLike<GetCallReturn<P>[T]>;
+
+    emit<T extends ServiceEventNames, P extends GetEmitParams<P>[T]>(
+      eventName: T,
+      payload: P,
+      groups?: ServiceNamesEmitGroup,
+    ): void;
+
+    broadcast: ServiceBroker['emit']
+    broadcastLocal: ServiceBroker['emit']
+  }
   `;
+
+  const callObj: {
+    [K: string]: { overloads: { in: string; out: string }[] };
+  } = {};
+  const emitObj: {
+    [K: string]: { overloads: { in: string }[] };
+  } = {};
 
   // call
   services.forEach(svc => {
     Array(meta[getServiceTypeName(svc.name)].actionsLength)
       .fill(0)
       .forEach((_, index) => {
-        brokerTypesFileContent += `
-        call(
-          actionName: '${svc.name}.${
+        const name = `${svc.name}.${
           metaNames[
             `Services${getServiceTypeName(svc.name)}ActionsName${index}`
           ]
-        }',
-          params: Services.${getServiceTypeName(
+        }`;
+
+        if (!callObj[name]) {
+          callObj[name] = {
+            overloads: [],
+          };
+        }
+
+        callObj[name].overloads.push({
+          in: `Services.${getServiceTypeName(
             svc.name,
-          )}.Actions[${index}]['in'],
-          opts?: Broker.CallingOptions,
-        ): PromiseLike<Services.${getServiceTypeName(
-          svc.name,
-        )}.Actions[${index}]['out']>;
-        `;
+          )}.Actions[${index}]['in']`,
+          out: `Services.${getServiceTypeName(
+            svc.name,
+          )}.Actions[${index}]['out']`,
+        });
       });
   });
 
-  let brokerTypesServiceEventsNames = 'export type ServiceEventNames = never';
-  // emit
   services.forEach(svc => {
     Array(meta[getServiceTypeName(svc.name)].eventsLength)
       .fill(0)
       .forEach((_, index) => {
-        brokerTypesServiceEventsNames += ` | '${svc.name}.${
+        const name = `${svc.name}.${
           metaNames[`Services${getServiceTypeName(svc.name)}EventsName${index}`]
-        }'`;
+        }`;
 
-        brokerTypesFileContent += `
-        emit(
-          eventName: '${svc.name}.${
-          metaNames[`Services${getServiceTypeName(svc.name)}EventsName${index}`]
-        }',
-          payload: Services.${getServiceTypeName(
-            svc.name,
-          )}.Events[${index}]['in'],
-          groups?: ServiceNamesEmitGroup
-        ): void
-        `;
+        if (!emitObj[name]) {
+          emitObj[name] = {
+            overloads: [],
+          };
+        }
+
+        emitObj[name].overloads.push({
+          in: `Services.${getServiceTypeName(svc.name)}.Events[${index}]['in']`,
+        });
       });
   });
-  brokerTypesFileContent += `
-  broadcast: ServiceBroker['emit']
-  broadcastLocal: ServiceBroker['emit']
-  `;
 
+  let brokerTypesServiceActionNames =
+    'export type ServiceActionNames = Exclude<never';
+
+  brokerTypesFileContent += `
+  type GetCallParams<P> = { `;
+  Object.keys(callObj).map(name => {
+    brokerTypesServiceActionNames += ` | '${name}'`;
+
+    const overloadUnionStrict = `MoleculerTs.Union.Strict<${callObj[
+      name
+    ].overloads
+      .map(one => one.in)
+      .join(' | ')}
+      >`;
+
+    brokerTypesFileContent += `'${name}': `;
+
+    callObj[name].overloads.map(one => {
+      brokerTypesFileContent += ` ${one.in} extends P ? ${one.in} : `;
+    });
+
+    brokerTypesFileContent += `StrictObject<
+      P,
+      ${overloadUnionStrict}
+    >; `;
+  });
+  brokerTypesFileContent += '}';
+  brokerTypesServiceActionNames += ',never>';
+
+  brokerTypesFileContent += `
+  type GetCallReturn<P> = { `;
+  Object.keys(callObj).map(name => {
+    brokerTypesFileContent += `'${name}': `;
+
+    callObj[name].overloads.map(one => {
+      brokerTypesFileContent += ` ${one.in} extends P ? ${one.out} : `;
+    });
+
+    brokerTypesFileContent += ' never; ';
+  });
   brokerTypesFileContent += '}';
 
+  let brokerTypesServiceEventsNames =
+    'export type ServiceEventNames = Exclude<never';
   brokerTypesFileContent += `
-  export type ServiceNames = never `;
+  type GetEmitParams<P> = { `;
+  Object.keys(emitObj).map(name => {
+    brokerTypesServiceEventsNames += ` | '${name}'`;
+
+    const overloadUnionStrict = `MoleculerTs.Union.Strict<${emitObj[
+      name
+    ].overloads
+      .map(one => one.in)
+      .join(' | ')}
+      >`;
+
+    brokerTypesFileContent += `'${name}': `;
+
+    emitObj[name].overloads.map(one => {
+      brokerTypesFileContent += ` ${one.in} extends P ? ${one.in} : `;
+    });
+
+    brokerTypesFileContent += `StrictObject<
+        P,
+        ${overloadUnionStrict}
+      >; `;
+  });
+  brokerTypesFileContent += '}';
+  brokerTypesServiceEventsNames += ',never>';
+
+  brokerTypesFileContent += `
+  export type ServiceNames = Exclude<never `;
   services.forEach((svc, index) => {
     if (!isServiceName(svc.name)) {
       return;
     }
     brokerTypesFileContent += `| '${svc.name}' `;
   });
-  brokerTypesFileContent += ';\n';
+  brokerTypesFileContent += ',never>;\n';
   brokerTypesFileContent += `export type ServiceNamesEmitGroup = ServiceNames | ServiceNames[];
     ${brokerTypesServiceEventsNames};
+    ${brokerTypesServiceActionNames}
     `;
 
   formatAndSave(
