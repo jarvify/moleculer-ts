@@ -7,7 +7,7 @@ export interface ServiceBroker {
     actionName: T,
     params: GetCallParams[T],
     opts?: Broker.CallingOptions,
-  ): GetCallReturn[T];
+  ): PromiseLike<GetCallReturn[T]>;
 
   emit<T extends ServiceEventNames>(
     eventName: T,
