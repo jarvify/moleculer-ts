@@ -1,15 +1,11 @@
+export * from './utils';
 export { ConcatMultiple } from 'typescript-tuple';
-export { enumerate } from 'ts-transformer-enumerate';
+import { Union } from 'ts-toolbelt';
+export { Union } from 'ts-toolbelt';
 
 type GenericObject = {
   [key: string]: any;
 };
-
-export type KnownKeys<T> = {
-  [K in keyof T]: string extends K ? never : number extends K ? never : K;
-} extends { [_ in keyof T]: infer U }
-  ? U
-  : never;
 
 export type Action<
   ActionName extends string,
@@ -32,6 +28,10 @@ export type GetNames<T extends any[]> = {
   [K in KeyOfTuple<T>]: T[K] extends { name: any } ? T[K]['name'] : never;
 }[KeyOfTuple<T>];
 
+export type GetAllNameKeysAndLength<T extends any[]> =
+  | GetNameKeys<T, any>
+  | 'length';
+
 export type GetNameKeys<T extends any[], P extends GetNames<T>> = {
   [K in KeyOfTuple<T>]: T[K] extends { name: any }
     ? T[K]['name'] extends P
@@ -39,6 +39,11 @@ export type GetNameKeys<T extends any[], P extends GetNames<T>> = {
       : never
     : never;
 }[KeyOfTuple<T>];
+
+export type GetParamsStrict<
+  T extends any[],
+  P extends GetNames<T>
+> = Union.Strict<GetParams<T, P>>;
 
 export type GetParams<T extends any[], P extends GetNames<T>> = {
   [K in GetNameKeys<T, P>]: T[K] extends { in: any } ? T[K]['in'] : never;
@@ -48,6 +53,6 @@ export type GetReturn<T extends any[], P extends GetNames<T>> = {
   [K in GetNameKeys<T, P>]: T[K] extends { out: any } ? T[K]['out'] : never;
 }[GetNameKeys<T, P>];
 
-export type GetServiceInterface<T extends any[]> = {
+export type GetServiceOwnActions<T extends any[]> = {
   [K in GetNames<T>]: (...args: any) => any;
 };
