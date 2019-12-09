@@ -1,7 +1,22 @@
 {
   "name": "moleculer-ts",
   "version": "1.0.1",
-  "description": "",
+  "description": "Definitive TypeScript support for Moleculer services",
+  "keywords": [
+    "moleculer",
+    "moleculer-js",
+    "typescript",
+    "ts"
+  ],
+  "homepage": "https://github.com/jarvify/moleculer-ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jarvify/moleculer-ts"
+  },
+  "main": "dist/index.js",
+  "directories": {
+    "lib": "dist"
+  },
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"No test specified\" && exit 0",
