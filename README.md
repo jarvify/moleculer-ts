@@ -16,7 +16,7 @@ moleculer-ts is a tool which generate [moleculer](https://github.com/moleculerjs
 ```
 npm i moleculer  moleculer-decorators moleculer-ts --save
 
-npm i typescript ts-patch ts-transformer-enumerate ts-transformer-json-schema prettier @types/node -D
+npm i typescript ts-patch ts-transformer-enumerate prettier @types/node -D
 
 node_modules/.bin/ts-patch install
 ```
@@ -28,7 +28,6 @@ node_modules/.bin/ts-patch install
   "compilerOptions": {
     "plugins": [
       { "transform": "ts-transformer-enumerate/transformer" },
-      { "transform": "ts-transformer-json-schema/transformer" }
     ]
   }
 }
