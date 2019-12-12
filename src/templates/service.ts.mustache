@@ -1,0 +1,21 @@
+import * as MTs from 'moleculer-ts';
+
+{{#services}}
+declare module '{{{path}}}' {
+  type ActionParams<T extends MTs.GetNames<{{name}}.Actions>> = MTs.GetParamsStrict<{{name}}.Actions, T>;
+  type ActionReturn<T extends MTs.GetNames<{{name}}.Actions>> = MTs.GetReturn<{{namr}}.Actions, T>;
+  type EventParams<T extends MTs.GetNames<{{name}}.Events>> = MTs.GetParamsStrict<{{name}}.Events, T>;
+  type ServiceOwnActions = MTs.GetServiceOwnActions<{{name}}.OwnActions>;
+}
+
+{{/services}}
+
+{{#services}}
+import * as {{name}} from {{{path}}};
+{{/services}}
+
+export {
+{{#services}}
+  {{name}},
+{{/services}}
+};

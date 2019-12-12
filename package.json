@@ -26,12 +26,14 @@
   "dependencies": {
     "glob": "^7.1.5",
     "glob-watcher": "^5.0.3",
-    "typescript-tuple": "^2.2.1",
-    "ts-toolbelt": "^4.10.0"
+    "mustache": "^3.1.0",
+    "ts-toolbelt": "^4.10.0",
+    "typescript-tuple": "^2.2.1"
   },
   "devDependencies": {
     "@types/glob": "^7.1.1",
     "@types/glob-watcher": "^5.0.0",
+    "@types/mustache": "^0.8.32",
     "@types/node": "^12.12.5",
     "@types/prettier": "^1.18.3",
     "prettier": "^1.18.2",
