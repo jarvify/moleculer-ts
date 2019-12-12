@@ -1,7 +1,9 @@
 export * from './utils';
-export { ConcatMultiple } from 'typescript-tuple';
 import { Union } from 'ts-toolbelt';
 export { Union } from 'ts-toolbelt';
+
+// return identity - lib will create concat behind the scenes - due to typescript limitations (tuples over 100 items cannot be concated)
+export type ConcatMultiple<TupleSet extends any[][]> = TupleSet;
 
 type GenericObject = {
   [key: string]: any;

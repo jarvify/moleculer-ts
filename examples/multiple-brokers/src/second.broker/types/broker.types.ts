@@ -7,7 +7,7 @@ export interface ServiceBroker {
     actionName: T,
     params: GetCallParams[T],
     opts?: Broker.CallingOptions,
-  ): GetCallReturn[T];
+  ): PromiseLike<GetCallReturn[T]>;
 
   emit<T extends ServiceEventNames>(
     eventName: T,
@@ -21,52 +21,8 @@ export interface ServiceBroker {
 
 type GetCallParams = {};
 type GetCallReturn = {};
-type GetEmitParams = {
-  '$broker.started': MoleculerTs.Union.Strict<
-    Services.BrokerServiceTypes.Events[0]['in']
-  >;
-  '$circuit-breaker.opened': MoleculerTs.Union.Strict<
-    Services.CircuitbreakerServiceTypes.Events[0]['in']
-  >;
-  '$circuit-breaker.half-opened': MoleculerTs.Union.Strict<
-    Services.CircuitbreakerServiceTypes.Events[1]['in']
-  >;
-  '$circuit-breaker.closed': MoleculerTs.Union.Strict<
-    Services.CircuitbreakerServiceTypes.Events[2]['in']
-  >;
-  '$node.connected': MoleculerTs.Union.Strict<
-    Services.NodeServiceTypes.Events[0]['in']
-  >;
-  '$node.updated': MoleculerTs.Union.Strict<
-    Services.NodeServiceTypes.Events[1]['in']
-  >;
-  '$node.disconnected': MoleculerTs.Union.Strict<
-    Services.NodeServiceTypes.Events[2]['in']
-  >;
-  '$services.changed': MoleculerTs.Union.Strict<
-    Services.ServicesServiceTypes.Events[0]['in']
-  >;
-  '$transporter.connected': MoleculerTs.Union.Strict<
-    Services.TransporterServiceTypes.Events[0]['in']
-  >;
-  '$transporter.disconnected': MoleculerTs.Union.Strict<
-    Services.TransporterServiceTypes.Events[1]['in']
-  >;
-};
+type GetEmitParams = {};
 export type ServiceNames = Exclude<never | 'test', never>;
 export type ServiceNamesEmitGroup = ServiceNames | ServiceNames[];
-export type ServiceEventNames = Exclude<
-  | never
-  | '$broker.started'
-  | '$circuit-breaker.opened'
-  | '$circuit-breaker.half-opened'
-  | '$circuit-breaker.closed'
-  | '$node.connected'
-  | '$node.updated'
-  | '$node.disconnected'
-  | '$services.changed'
-  | '$transporter.connected'
-  | '$transporter.disconnected',
-  never
->;
+export type ServiceEventNames = Exclude<never, never>;
 export type ServiceActionNames = Exclude<never, never>;

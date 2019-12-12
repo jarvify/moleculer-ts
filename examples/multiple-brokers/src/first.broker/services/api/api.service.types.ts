@@ -1,5 +1,18 @@
 import { Action, Event, ConcatMultiple } from 'moleculer-ts';
-import { IncomingMessage } from 'http';
+
+import { SomeActions as Idk } from './tuple.test';
+
+import { SomeActions } from './tuple.test';
+
+import { SomeActions as SomeActions2 } from '@first.broker/services/api/tuple.test';
+
+// dont care ! but doable
+import * as SomeActionsStar from './tuple.test';
+// not acceptable - very hard to do
+import defaultB, { default as K } from './tuple.test2';
+
+type C = SomeActionsStar.SomeActions;
+
 export const name: 'api' = 'api';
 
 export type OwnActions = [
@@ -9,5 +22,15 @@ export type OwnActions = [
 
 export type OwnEvents = [];
 
-export type Actions = ConcatMultiple<[OwnActions]>;
-export type Events = ConcatMultiple<[OwnEvents]>;
+type Actions = ConcatMultiple<
+  [
+    OwnActions,
+    Idk,
+    SomeActions,
+    SomeActions2,
+    SomeActionsStar.SomeActions,
+    defaultB,
+    K,
+  ]
+>;
+type Events = ConcatMultiple<[OwnEvents]>;

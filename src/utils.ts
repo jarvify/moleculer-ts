@@ -5,6 +5,8 @@ import glob from 'glob';
 import path from 'path';
 import cp from 'child_process';
 
+import { parseTsConcatMultiple } from './parse-ts';
+
 type GenerateBrokerOptions = {
   serviceTypesPattern: string;
   outputDir: string;
@@ -53,9 +55,9 @@ function getServiceTypeName(name: string) {
 }
 
 function getRelativePathForImport(from: string, to: string) {
-  return path.posix
+  return `./${path.posix
     .relative(path.posix.normalize(from), path.posix.normalize(to))
-    .replace(/\.ts$/, '');
+    .replace(/\.ts$/, '')}`;
 }
 
 export async function generateBroker(options: GenerateBrokerOptions) {
@@ -80,6 +82,9 @@ export async function generateBroker(options: GenerateBrokerOptions) {
       file,
     );
 
+    const serviceContent = fs.readFileSync(file).toString();
+
+    parseTsConcatMultiple(serviceContent);
     const service = require(file);
     const name = service.name;
 

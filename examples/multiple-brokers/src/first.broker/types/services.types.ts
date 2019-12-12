@@ -1,5 +1,5 @@
 import * as MoleculerTs from 'moleculer-ts';
-declare module '../services/api/api.service.types' {
+declare module './../services/api/api.service.types' {
   type ActionParams<
     T extends MoleculerTs.GetNames<ApiServiceTypes.Actions>
   > = MoleculerTs.GetParamsStrict<ApiServiceTypes.Actions, T>;
@@ -13,7 +13,7 @@ declare module '../services/api/api.service.types' {
     ApiServiceTypes.OwnActions
   >;
 }
-declare module '../services/api/v1.api.service.types' {
+declare module './../services/api/v1.api.service.types' {
   type ActionParams<
     T extends MoleculerTs.GetNames<V1apiServiceTypes.Actions>
   > = MoleculerTs.GetParamsStrict<V1apiServiceTypes.Actions, T>;
@@ -27,7 +27,7 @@ declare module '../services/api/v1.api.service.types' {
     V1apiServiceTypes.OwnActions
   >;
 }
-declare module '../services/user/user.service.types' {
+declare module './../services/user/user.service.types' {
   type ActionParams<
     T extends MoleculerTs.GetNames<UserServiceTypes.Actions>
   > = MoleculerTs.GetParamsStrict<UserServiceTypes.Actions, T>;
@@ -41,8 +41,8 @@ declare module '../services/user/user.service.types' {
     UserServiceTypes.OwnActions
   >;
 }
-import * as ApiServiceTypes from '../services/api/api.service.types';
-import * as V1apiServiceTypes from '../services/api/v1.api.service.types';
-import * as UserServiceTypes from '../services/user/user.service.types';
+import * as ApiServiceTypes from './../services/api/api.service.types';
+import * as V1apiServiceTypes from './../services/api/v1.api.service.types';
+import * as UserServiceTypes from './../services/user/user.service.types';
 
 export { ApiServiceTypes, V1apiServiceTypes, UserServiceTypes };
