@@ -1,5 +1,3 @@
-import { Tuple } from 'index';
-
 const IMPORT_KEYWORD = 'import';
 const FROM_KEYWORD = 'from';
 const AS_KEYWORD = 'as';
@@ -228,9 +226,12 @@ export function parseTsConcatMultiple(str: string) {
 
   // count it by parts or can we put it into single file ?! yes !
   const result: {
-    actions: { name: string; fromModule: string }[];
-    events: { name: string; fromModule: string }[];
-  }[] = [];
+    actions: { name: string; fromModule: string | null }[];
+    events: { name: string; fromModule: string | null }[];
+  } = {
+    actions: [],
+    events: [],
+  };
 
   if (
     actionsMatchArray &&
@@ -240,8 +241,7 @@ export function parseTsConcatMultiple(str: string) {
     const actionTuples = getTuplesNames(actionsMatchArray[1]).map(tupleName => {
       return getImportOfName(tupleName, importRes);
     });
-
-    console.log(actionTuples);
+    result.actions = actionTuples;
   }
 
   const eventsMatchArray = str.match(
@@ -256,8 +256,7 @@ export function parseTsConcatMultiple(str: string) {
     const eventTuples = getTuplesNames(eventsMatchArray[1]).map(tupleName => {
       return getImportOfName(tupleName, importRes);
     });
-
-    console.log(eventTuples);
+    result.events = eventTuples;
   }
 
   // namedImports only - for first release

@@ -60,6 +60,62 @@ function getRelativePathForImport(from: string, to: string) {
     .replace(/\.ts$/, '')}`;
 }
 
+type Services = {
+  name: string;
+  path: string;
+  tuples: ReturnType<typeof parseTsConcatMultiple>;
+}[];
+
+function getServiceActionTupleName(sIndex: number, aIndex: number) {
+  return `Service${sIndex}Action${aIndex}`;
+}
+
+function getServiceEventTupleName(sIndex: number, aIndex: number) {
+  return `Service${sIndex}Event${aIndex}`;
+}
+
+function getImportForTuples(services: Services, rootDir?: string): string {
+  let tuplesImport = '';
+
+  services.map((service, sIndex) => {
+    service.tuples.actions.map((action, aIndex) => {
+      let fromModule = action.fromModule;
+      if (fromModule && fromModule.length > 0 && fromModule.startsWith('.')) {
+        fromModule = `${rootDir ? `${rootDir}/` : ''}${path.posix.dirname(
+          service.path,
+        )}/${fromModule}`;
+      }
+      if (fromModule === null) {
+        fromModule = `${rootDir ? `${rootDir}/` : ''}${service.path}`;
+      }
+
+      tuplesImport += `import { ${action.name} as ${getServiceActionTupleName(
+        sIndex,
+        aIndex,
+      )} } from '${fromModule}';\n`;
+    });
+
+    service.tuples.events.map((event, aIndex) => {
+      let fromModule = event.fromModule;
+      if (fromModule && fromModule.length > 0 && fromModule.startsWith('.')) {
+        fromModule = `${rootDir ? `${rootDir}/` : ''}${path.posix.dirname(
+          service.path,
+        )}/${fromModule}`;
+      }
+      if (fromModule === null) {
+        fromModule = `${rootDir ? `${rootDir}/` : ''}${service.path}`;
+      }
+
+      tuplesImport += `import { ${event.name} as ${getServiceEventTupleName(
+        sIndex,
+        aIndex,
+      )} } from '${fromModule}';\n`;
+    });
+  });
+
+  return tuplesImport;
+}
+
 export async function generateBroker(options: GenerateBrokerOptions) {
   const isServiceName =
     options.isServiceName ||
@@ -73,7 +129,7 @@ export async function generateBroker(options: GenerateBrokerOptions) {
   const serviceTypeFiles = glob.sync(options.serviceTypesPattern);
 
   let serviceTypesFileContent = '';
-  const services: { name: string; path: string }[] = [];
+  const services: Services = [];
 
   // init
   serviceTypeFiles.forEach(file => {
@@ -84,22 +140,109 @@ export async function generateBroker(options: GenerateBrokerOptions) {
 
     const serviceContent = fs.readFileSync(file).toString();
 
-    parseTsConcatMultiple(serviceContent);
+    const tuples = parseTsConcatMultiple(serviceContent);
+
+    // get service name from variable!
     const service = require(file);
     const name = service.name;
 
     services.push({
       name,
       path: serviceRelativePath,
+      tuples,
     });
   });
 
-  // service types file content
+  // service type file gen
   const importMoleculerTs = `import * as MoleculerTs from 'moleculer-ts'`;
-  serviceTypesFileContent += `${importMoleculerTs}\n`;
 
-  services.forEach(svc => {
+  let cpServiceMetaFile = ``;
+  cpServiceMetaFile += `
+     import { enumerate } from 'ts-transformer-enumerate';
+     ${importMoleculerTs};
+     ${getImportForTuples(services, outputDirImport)}
+   `;
+
+  cpServiceMetaFile += 'const meta: any = {';
+
+  services.forEach((service, sIndex) => {
+    service.tuples.actions.map((action, aIndex) => {
+      cpServiceMetaFile += `'${getServiceActionTupleName(
+        sIndex,
+        aIndex,
+      )}': Object.keys(enumerate<MoleculerTs.GetAllNameKeysAndLength<${getServiceActionTupleName(
+        sIndex,
+        aIndex,
+      )}>>()).length -1,`;
+    });
+    service.tuples.events.map((event, aIndex) => {
+      cpServiceMetaFile += `'${getServiceEventTupleName(
+        sIndex,
+        aIndex,
+      )}': Object.keys(enumerate<MoleculerTs.GetAllNameKeysAndLength<${getServiceEventTupleName(
+        sIndex,
+        aIndex,
+      )}>>()).length -1,`;
+    });
+  });
+
+  cpServiceMetaFile += '}\n';
+
+  cpServiceMetaFile += 'console.log(JSON.stringify(meta));';
+  const cpServiceMeta = cp.spawn(
+    `${path.join('node_modules', '.bin', 'ts-node')}`,
+    ['-e', cpServiceMetaFile],
+  );
+
+  let rawServiceMeta = '';
+
+  cpServiceMeta.stdout.on('data', data => {
+    rawServiceMeta += data;
+  });
+
+  cpServiceMeta.stderr.on('data', data => {
+    console.error(`stderr: ${data}`);
+  });
+
+  await new Promise(resolve => {
+    cpServiceMeta.on('close', code => {
+      resolve();
+    });
+  });
+
+  const serviceMeta = JSON.parse(rawServiceMeta);
+
+  serviceTypesFileContent += `${importMoleculerTs}
+  ${getImportForTuples(services)}
+  `;
+
+  services.forEach((svc, sIndex) => {
+    const svcActions: string[] = [];
+    const svcEvents: string[] = [];
+    svc.tuples.actions.map((_, aIndex) => {
+      for (
+        let i = 0;
+        i < serviceMeta[getServiceActionTupleName(sIndex, aIndex)];
+        i++
+      ) {
+        svcActions.push(`${getServiceActionTupleName(sIndex, aIndex)}[${i}]`);
+      }
+    });
+    svc.tuples.actions.map((_, aIndex) => {
+      for (
+        let i = 0;
+        i < serviceMeta[getServiceEventTupleName(sIndex, aIndex)];
+        i++
+      ) {
+        svcEvents.push(`${getServiceEventTupleName(sIndex, aIndex)}[${i}]`);
+      }
+    });
+
     serviceTypesFileContent += `declare module '${svc.path}' {
+        
+        type Actions = [${svcActions.join(',')}]
+        type Events = [${svcEvents.join(',')}] 
+        
         type ActionParams<T extends MoleculerTs.GetNames<${getServiceTypeName(
           svc.name,
         )}.Actions>> = MoleculerTs.GetParamsStrict<

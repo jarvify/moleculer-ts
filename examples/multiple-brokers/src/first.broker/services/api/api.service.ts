@@ -2,11 +2,6 @@ import { Service, Action, Event, Method } from 'moleculer-decorators';
 import * as Broker from '@first.broker/moleculer';
 import { ApiServiceTypes, UserServiceTypes } from '@first.broker/types';
 
-// name = 'someService';
-function (name: string) {
-  return ['$node', 'aa', ''].includes(name);
-} 
-
 interface ApiService {
   name: typeof ApiServiceTypes.name;
 }

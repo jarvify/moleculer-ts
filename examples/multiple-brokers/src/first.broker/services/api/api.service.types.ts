@@ -7,11 +7,9 @@ import { SomeActions } from './tuple.test';
 import { SomeActions as SomeActions2 } from '@first.broker/services/api/tuple.test';
 
 // dont care ! but doable
-import * as SomeActionsStar from './tuple.test';
+// import * as SomeActionsStar from './tuple.test';
 // not acceptable - very hard to do
-import defaultB, { default as K } from './tuple.test2';
-
-type C = SomeActionsStar.SomeActions;
+// import defaultB, { default as K } from './tuple.test2';
 
 export const name: 'api' = 'api';
 
@@ -22,15 +20,5 @@ export type OwnActions = [
 
 export type OwnEvents = [];
 
-type Actions = ConcatMultiple<
-  [
-    OwnActions,
-    Idk,
-    SomeActions,
-    SomeActions2,
-    SomeActionsStar.SomeActions,
-    defaultB,
-    K,
-  ]
->;
+type Actions = ConcatMultiple<[OwnActions]>;
 type Events = ConcatMultiple<[OwnEvents]>;
