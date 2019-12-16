@@ -20,9 +20,12 @@ export interface ServiceBroker {
 }
 
 type GetCallParams = {};
+
 type GetCallReturn = {};
+
 type GetEmitParams = {};
+
 export type ServiceNames = Exclude<never, never>;
-export type ServiceNamesEmitGroup = ServiceNames | ServiceNames[];
 export type ServiceEventNames = Exclude<never, never>;
 export type ServiceActionNames = Exclude<never, never>;
+export type ServiceNamesEmitGroup = ServiceNames | ServiceNames[];

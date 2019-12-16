@@ -7,7 +7,7 @@ export interface ServiceBroker {
     actionName: T,
     params: GetCallParams[T],
     opts?: Broker.CallingOptions,
-  ): GetCallReturn[T];
+  ): PromiseLike<GetCallReturn[T]>;
 
   emit<T extends ServiceEventNames>(
     eventName: T,
@@ -20,7 +20,9 @@ export interface ServiceBroker {
 }
 
 type GetCallParams = {};
+
 type GetCallReturn = {};
+
 type GetEmitParams = {
   '$broker.started': MoleculerTs.Union.Strict<
     Services.BrokerServiceTypes.Events[0]['in']
@@ -53,8 +55,8 @@ type GetEmitParams = {
     Services.TransporterServiceTypes.Events[1]['in']
   >;
 };
+
 export type ServiceNames = Exclude<never | 'test', never>;
-export type ServiceNamesEmitGroup = ServiceNames | ServiceNames[];
 export type ServiceEventNames = Exclude<
   | never
   | '$broker.started'
@@ -70,3 +72,4 @@ export type ServiceEventNames = Exclude<
   never
 >;
 export type ServiceActionNames = Exclude<never, never>;
+export type ServiceNamesEmitGroup = ServiceNames | ServiceNames[];
