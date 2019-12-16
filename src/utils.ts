@@ -14,6 +14,18 @@ type GenerateBrokerOptions = {
   isServiceName?: (name: string) => boolean;
 };
 
+type Service = {
+  name: string;
+  path: string;
+  tuples: ReturnType<typeof parseTsConcatMultiple>;
+};
+
+type TupleImport = {
+  name: string;
+  alias: string;
+  module: string;
+};
+
 const capitalize = (s: string) => {
   if (typeof s !== 'string') {
     return '';
@@ -70,12 +82,6 @@ function getRelativePathForImport(from: string, to: string) {
     .replace(/\.ts$/, '');
 }
 
-type Services = {
-  name: string;
-  path: string;
-  tuples: ReturnType<typeof parseTsConcatMultiple>;
-}[];
-
 function getServiceActionTupleName(sIndex: number, aIndex: number) {
   return `Service${sIndex}Action${aIndex}`;
 }
@@ -84,8 +90,11 @@ function getServiceEventTupleName(sIndex: number, aIndex: number) {
   return `Service${sIndex}Event${aIndex}`;
 }
 
-function getImportForTuples(services: Services, rootDir?: string): string {
-  let tuplesImport = '';
+function getImportForTuples(
+  services: Service[],
+  rootDir?: string,
+): TupleImport[] {
+  const tuplesImports: TupleImport[] = [];
 
   services.map((service, sIndex) => {
     service.tuples.actions.map((action, aIndex) => {
@@ -99,10 +108,11 @@ function getImportForTuples(services: Services, rootDir?: string): string {
         fromModule = `${rootDir ? `${rootDir}/` : ''}${service.path}`;
       }
 
-      tuplesImport += `import { ${action.name} as ${getServiceActionTupleName(
-        sIndex,
-        aIndex,
-      )} } from '${fromModule}';\n`;
+      tuplesImports.push({
+        name: action.name,
+        alias: getServiceActionTupleName(sIndex, aIndex),
+        module: fromModule,
+      });
     });
 
     service.tuples.events.map((event, aIndex) => {
@@ -116,17 +126,18 @@ function getImportForTuples(services: Services, rootDir?: string): string {
         fromModule = `${rootDir ? `${rootDir}/` : ''}${service.path}`;
       }
 
-      tuplesImport += `import { ${event.name} as ${getServiceEventTupleName(
-        sIndex,
-        aIndex,
-      )} } from '${fromModule}';\n`;
+      tuplesImports.push({
+        name: event.name,
+        alias: getServiceEventTupleName(sIndex, aIndex),
+        module: fromModule,
+      });
     });
   });
 
-  return tuplesImport;
+  return tuplesImports;
 }
 
-async function rawMetaNames(services: any[], outputDirImport: string) {
+async function rawMetaNames(services: Service[], outputDirImport: string) {
   // broker type file gen
   let cpMetaFile = ``;
   cpMetaFile += `
@@ -237,15 +248,19 @@ async function rawMetaNames(services: any[], outputDirImport: string) {
   };
 }
 
-async function rawServiceMeta(services: Services, outputDirImport: string) {
+async function rawServiceMeta(services: Service[], outputDirImport: string) {
   const importMoleculerTs = `import * as MoleculerTs from 'moleculer-ts'`;
 
   let cpServiceMetaFile = ``;
   cpServiceMetaFile += `
      import { enumerate } from 'ts-transformer-enumerate';
      ${importMoleculerTs};
-     ${getImportForTuples(services, outputDirImport)}
-   `;
+     ${getImportForTuples(services, outputDirImport)
+       .map(
+         tuple =>
+           `import { ${tuple.name} as ${tuple.alias} } from '${tuple.module}';`,
+       )
+       .join('\n')}\n`;
 
   cpServiceMetaFile += 'const meta: any = {';
 
@@ -311,7 +326,7 @@ export async function generateBroker(options: GenerateBrokerOptions) {
 
   const serviceTypeFiles = glob.sync(options.serviceTypesPattern);
 
-  const services: Services = [];
+  const services: Service[] = [];
 
   // init
   serviceTypeFiles.forEach(file => {

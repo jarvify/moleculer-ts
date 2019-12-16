@@ -1,5 +1,7 @@
 import * as MoleculerTs from 'moleculer-ts';
-{{{importForTuples}}}
+{{#importForTuples}}
+import { {{name}} as {{alias}} } from '{{{module}}}';
+{{/importForTuples}}
 
 {{#services}}
 declare module '{{{path}}}' {

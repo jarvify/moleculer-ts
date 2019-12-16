@@ -3,4 +3,4 @@
  */
 import { cp } from 'shelljs';
 
-cp('-R', 'src/templates', 'dist');
+cp('-rf', 'src/templates', 'dist');
