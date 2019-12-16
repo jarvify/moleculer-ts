@@ -37,6 +37,10 @@ const serviceTemplate = fs.readFileSync(
   path.join(__dirname, 'templates', 'service.ts.mustache'),
   'utf-8',
 );
+const serviceMetaTemplate = fs.readFileSync(
+  path.join(__dirname, 'templates', 'metaService.ts.mustache'),
+  'utf-8',
+);
 const brokerTemplate = fs.readFileSync(
   path.join(__dirname, 'templates', 'broker.ts.mustache'),
   'utf-8',
@@ -249,48 +253,27 @@ async function rawMetaNames(services: Service[], outputDirImport: string) {
 }
 
 async function rawServiceMeta(services: Service[], outputDirImport: string) {
-  const importMoleculerTs = `import * as MoleculerTs from 'moleculer-ts'`;
-
-  let cpServiceMetaFile = ``;
-  cpServiceMetaFile += `
-     import { enumerate } from 'ts-transformer-enumerate';
-     ${importMoleculerTs};
-     ${getImportForTuples(services, outputDirImport)
-       .map(
-         tuple =>
-           `import { ${tuple.name} as ${tuple.alias} } from '${tuple.module}';`,
-       )
-       .join('\n')}\n`;
-
-  cpServiceMetaFile += 'const meta: any = {';
+  const metaItems: string[] = [];
 
   services.forEach((service, sIndex) => {
     service.tuples.actions.map((action, aIndex) => {
-      cpServiceMetaFile += `'${getServiceActionTupleName(
-        sIndex,
-        aIndex,
-      )}': Object.keys(enumerate<MoleculerTs.GetAllNameKeysAndLength<${getServiceActionTupleName(
-        sIndex,
-        aIndex,
-      )}>>()).length -1,`;
+      metaItems.push(getServiceActionTupleName(sIndex, aIndex));
     });
+
     service.tuples.events.map((event, aIndex) => {
-      cpServiceMetaFile += `'${getServiceEventTupleName(
-        sIndex,
-        aIndex,
-      )}': Object.keys(enumerate<MoleculerTs.GetAllNameKeysAndLength<${getServiceEventTupleName(
-        sIndex,
-        aIndex,
-      )}>>()).length -1,`;
+      metaItems.push(getServiceEventTupleName(sIndex, aIndex));
     });
   });
 
-  cpServiceMetaFile += '}\n';
+  // service types meta file content
+  const serviceMetaFileContent = Mustache.render(serviceMetaTemplate, {
+    importForTuples: getImportForTuples(services, outputDirImport),
+    metaItems,
+  });
 
-  cpServiceMetaFile += 'console.log(JSON.stringify(meta));';
   const cpServiceMeta = cp.spawn(
     `${path.join('node_modules', '.bin', 'ts-node')}`,
-    ['-e', cpServiceMetaFile],
+    ['-e', serviceMetaFileContent],
   );
 
   let rawServiceMeta = '';

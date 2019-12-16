@@ -1,0 +1,14 @@
+import { enumerate } from 'ts-transformer-enumerate';
+import * as MoleculerTs from 'moleculer-ts';
+
+{{#importForTuples}}
+  import { {{name}} as {{alias}} } from '{{{module}}}';
+{{/importForTuples}}
+
+const meta: any = {
+{{#metaItems}}
+  '{{.}}': Object.keys(enumerate< MoleculerTs.GetAllNameKeysAndLength<{{.}}> >()).length -1,
+{{/metaItems}}
+};
+
+console.log(JSON.stringify(meta));
