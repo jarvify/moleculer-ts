@@ -4,11 +4,26 @@ import watch from 'glob-watcher';
 import glob from 'glob';
 import path from 'path';
 import cp from 'child_process';
+import Mustache from 'mustache';
+
+import { parseTsConcatMultiple } from './parse-ts';
 
 type GenerateBrokerOptions = {
   serviceTypesPattern: string;
   outputDir: string;
   isServiceName?: (name: string) => boolean;
+};
+
+type Service = {
+  name: string;
+  path: string;
+  tuples: ReturnType<typeof parseTsConcatMultiple>;
+};
+
+type TupleImport = {
+  name: string;
+  alias: string;
+  module: string;
 };
 
 const capitalize = (s: string) => {
@@ -17,6 +32,27 @@ const capitalize = (s: string) => {
   }
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
+
+const serviceTemplate = fs.readFileSync(
+  path.join(__dirname, 'templates', 'service.ts.mustache'),
+  'utf-8',
+);
+const serviceMetaTemplate = fs.readFileSync(
+  path.join(__dirname, 'templates/meta', 'service.ts.mustache'),
+  'utf-8',
+);
+const rawMetaTemplate = fs.readFileSync(
+  path.join(__dirname, 'templates/meta', 'raw.ts.mustache'),
+  'utf-8',
+);
+const namesMetaTemplate = fs.readFileSync(
+  path.join(__dirname, 'templates/meta', 'names.ts.mustache'),
+  'utf-8',
+);
+const brokerTemplate = fs.readFileSync(
+  path.join(__dirname, 'templates', 'broker.ts.mustache'),
+  'utf-8',
+);
 
 async function formatAndSave(input: string, destination: string) {
   const info = await prettier.getFileInfo(destination);
@@ -58,110 +94,71 @@ function getRelativePathForImport(from: string, to: string) {
     .replace(/\.ts$/, '');
 }
 
-export async function generateBroker(options: GenerateBrokerOptions) {
-  const isServiceName =
-    options.isServiceName ||
-    function(name: string) {
-      return !Boolean(name.match(/^\$/));
-    };
+function getServiceActionTupleName(sIndex: number, aIndex: number) {
+  return `Service${sIndex}Action${aIndex}`;
+}
 
-  const outputDirFs = path.normalize(options.outputDir);
-  const outputDirImport = path.posix.normalize(options.outputDir);
+function getServiceEventTupleName(sIndex: number, aIndex: number) {
+  return `Service${sIndex}Event${aIndex}`;
+}
 
-  const serviceTypeFiles = glob.sync(options.serviceTypesPattern);
+function getImportForTuples(
+  services: Service[],
+  rootDir?: string,
+): TupleImport[] {
+  const tuplesImports: TupleImport[] = [];
 
-  let serviceTypesFileContent = '';
-  const services: { name: string; path: string }[] = [];
+  services.map((service, sIndex) => {
+    service.tuples.actions.map((action, aIndex) => {
+      let fromModule = action.fromModule;
+      if (fromModule && fromModule.length > 0 && fromModule.startsWith('.')) {
+        fromModule = `${rootDir ? `${rootDir}/` : ''}${path.posix.dirname(
+          service.path,
+        )}/${fromModule}`;
+      }
+      if (fromModule === null) {
+        fromModule = `${rootDir ? `${rootDir}/` : ''}${service.path}`;
+      }
 
-  // init
-  serviceTypeFiles.forEach(file => {
-    const serviceRelativePath = getRelativePathForImport(
-      options.outputDir,
-      file,
-    );
+      tuplesImports.push({
+        name: action.name,
+        alias: getServiceActionTupleName(sIndex, aIndex),
+        module: fromModule,
+      });
+    });
 
-    const service = require(file);
-    const name = service.name;
+    service.tuples.events.map((event, aIndex) => {
+      let fromModule = event.fromModule;
+      if (fromModule && fromModule.length > 0 && fromModule.startsWith('.')) {
+        fromModule = `${rootDir ? `${rootDir}/` : ''}${path.posix.dirname(
+          service.path,
+        )}/${fromModule}`;
+      }
+      if (fromModule === null) {
+        fromModule = `${rootDir ? `${rootDir}/` : ''}${service.path}`;
+      }
 
-    services.push({
-      name,
-      path: serviceRelativePath,
+      tuplesImports.push({
+        name: event.name,
+        alias: getServiceEventTupleName(sIndex, aIndex),
+        module: fromModule,
+      });
     });
   });
 
-  // service types file content
-  const importMoleculerTs = `import * as MoleculerTs from 'moleculer-ts'`;
-  serviceTypesFileContent += `${importMoleculerTs}\n`;
+  return tuplesImports;
+}
 
-  services.forEach(svc => {
-    serviceTypesFileContent += `declare module '${svc.path}' {
-        type ActionParams<T extends MoleculerTs.GetNames<${getServiceTypeName(
-          svc.name,
-        )}.Actions>> = MoleculerTs.GetParamsStrict<
-        ${getServiceTypeName(svc.name)}.Actions,
-          T
-        >;
-        type ActionReturn<T extends MoleculerTs.GetNames<${getServiceTypeName(
-          svc.name,
-        )}.Actions>> = MoleculerTs.GetReturn<Actions, T>;
-        type EventParams<T extends MoleculerTs.GetNames<${getServiceTypeName(
-          svc.name,
-        )}.Events>> = MoleculerTs.GetParamsStrict<${getServiceTypeName(
-      svc.name,
-    )}.Events, T>;
-        type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<${getServiceTypeName(
-          svc.name,
-        )}.OwnActions>;
-      }`;
+async function rawMetaNames(services: Service[], outputDirImport: string) {
+  // service types meta file content
+  const metaFileContent = Mustache.render(rawMetaTemplate, {
+    serviceNames: services.map(({ name }) => getServiceTypeName(name)),
+    outputDirImport,
   });
-
-  services.forEach(svc => {
-    serviceTypesFileContent += `import * as ${getServiceTypeName(
-      svc.name,
-    )} from '${svc.path}';\n`;
-  });
-
-  serviceTypesFileContent += '\nexport {';
-
-  services.forEach(svc => {
-    serviceTypesFileContent += `${getServiceTypeName(svc.name)},`;
-  });
-
-  serviceTypesFileContent += '}';
-
-  formatAndSave(
-    serviceTypesFileContent,
-    path.join(options.outputDir, 'services.types.ts'),
-  );
-
-  // broker type file gen
-  let cpMetaFile = ``;
-  cpMetaFile += `
-    import * as Services from '${outputDirImport}/services.types';
-    import { enumerate } from 'ts-transformer-enumerate';
-    ${importMoleculerTs}\n;
-  `;
-
-  cpMetaFile += 'const meta: any = {';
-  services.forEach(svc => {
-    cpMetaFile += `'${getServiceTypeName(
-      svc.name,
-    )}': { actionsLength: Object.keys(enumerate<MoleculerTs.GetAllNameKeysAndLength<Services.${getServiceTypeName(
-      svc.name,
-    )}.Actions>>()).length -1, eventsLength: Object.keys(enumerate<MoleculerTs.GetAllNameKeysAndLength<Services.${getServiceTypeName(
-      svc.name,
-    )}.Events>>()).length -1, actionsEnum: enumerate<MoleculerTs.GetNames<Services.${getServiceTypeName(
-      svc.name,
-    )}.Actions>>() },`;
-  });
-
-  cpMetaFile += '}\n';
-
-  cpMetaFile += 'console.log(JSON.stringify(meta));';
 
   const cpMeta = cp.spawn(`${path.join('node_modules', '.bin', 'ts-node')}`, [
     '-e',
-    cpMetaFile,
+    metaFileContent,
   ]);
 
   let rawMeta = '';
@@ -183,43 +180,26 @@ export async function generateBroker(options: GenerateBrokerOptions) {
   const meta = JSON.parse(rawMeta);
 
   // broker action names
-  let cpMetaNamesFile = ``;
-  cpMetaNamesFile += `
-    import * as Services from '${outputDirImport}/services.types';
-    import { enumerate } from 'ts-transformer-enumerate';
-    ${importMoleculerTs}\n;
-  `;
+  const names: any[] = [];
 
-  cpMetaNamesFile += 'const meta: any = {';
   services.forEach(svc => {
-    Array(meta[getServiceTypeName(svc.name)].actionsLength)
-      .fill(0)
-      .forEach((_, index) => {
-        cpMetaNamesFile += `Services${getServiceTypeName(
-          svc.name,
-        )}ActionsName${index}: Object.keys(enumerate<Services.${getServiceTypeName(
-          svc.name,
-        )}.Actions[${index}]['name']>())[0],`;
-      });
+    const { actionsLength, eventsLength } = meta[getServiceTypeName(svc.name)];
 
-    Array(meta[getServiceTypeName(svc.name)].eventsLength)
-      .fill(0)
-      .forEach((_, index) => {
-        cpMetaNamesFile += `Services${getServiceTypeName(
-          svc.name,
-        )}EventsName${index}: Object.keys(enumerate<Services.${getServiceTypeName(
-          svc.name,
-        )}.Events[${index}]['name']>())[0],`;
-      });
+    names.push({
+      name: getServiceTypeName(svc.name),
+      actions: Array.from(Array(actionsLength).keys()),
+      events: Array.from(Array(eventsLength).keys()),
+    });
   });
 
-  cpMetaNamesFile += '}\n';
-
-  cpMetaNamesFile += 'console.log(JSON.stringify(meta));';
+  const metaNamesFileContent = Mustache.render(namesMetaTemplate, {
+    outputDirImport,
+    names,
+  });
 
   const cpMetaNames = cp.spawn(
     `${path.join('node_modules', '.bin', 'ts-node')}`,
-    ['-e', cpMetaNamesFile],
+    ['-e', metaNamesFileContent],
   );
 
   let rawMetaNames = '';
@@ -238,163 +218,189 @@ export async function generateBroker(options: GenerateBrokerOptions) {
     });
   });
 
-  const metaNames = JSON.parse(rawMetaNames);
+  return {
+    meta,
+    rawMetaNames: JSON.parse(rawMetaNames),
+  };
+}
 
-  // broker type file
-  let brokerTypesFileContent = '';
+async function rawServiceMeta(services: Service[], outputDirImport: string) {
+  const metaItems: string[] = [];
 
-  brokerTypesFileContent += `import * as MoleculerTs from 'moleculer-ts';
-  import * as Broker from './moleculer';
-  import * as Services from './services.types';
+  services.forEach((service, sIndex) => {
+    service.tuples.actions.map((action, aIndex) => {
+      metaItems.push(getServiceActionTupleName(sIndex, aIndex));
+    });
 
-  export interface ServiceBroker {
-    call<
-    T extends ServiceActionNames,
-    >(
-      actionName: T,
-      params: GetCallParams[T],
-      opts?: Broker.CallingOptions,
-    ): PromiseLike<GetCallReturn[T]>;
+    service.tuples.events.map((event, aIndex) => {
+      metaItems.push(getServiceEventTupleName(sIndex, aIndex));
+    });
+  });
 
-    emit<T extends ServiceEventNames>(
-      eventName: T,
-      payload: GetEmitParams[T],
-      groups?: ServiceNamesEmitGroup,
-    ): void;
+  // service types meta file content
+  const serviceMetaFileContent = Mustache.render(serviceMetaTemplate, {
+    importForTuples: getImportForTuples(services, outputDirImport),
+    metaItems,
+  });
 
-    broadcast: ServiceBroker['emit']
-    broadcastLocal: ServiceBroker['emit']
-  }
-  `;
+  const cpServiceMeta = cp.spawn(
+    `${path.join('node_modules', '.bin', 'ts-node')}`,
+    ['-e', serviceMetaFileContent],
+  );
+
+  let rawServiceMeta = '';
+
+  cpServiceMeta.stdout.on('data', data => {
+    rawServiceMeta += data;
+  });
+
+  cpServiceMeta.stderr.on('data', data => {
+    console.error(`stderr: ${data}`);
+  });
+
+  await new Promise(resolve => {
+    cpServiceMeta.on('close', code => {
+      resolve();
+    });
+  });
+
+  return {
+    rawServiceMeta: JSON.parse(rawServiceMeta),
+  };
+}
+
+export async function generateBroker(options: GenerateBrokerOptions) {
+  const isServiceName =
+    options.isServiceName ||
+    function(name: string) {
+      return !Boolean(name.match(/^\$/));
+    };
+
+  const outputDirFs = path.normalize(options.outputDir);
+  const outputDirImport = path.posix.normalize(options.outputDir);
+
+  const serviceTypeFiles = glob.sync(options.serviceTypesPattern);
+
+  const services: Service[] = [];
+
+  // init
+  serviceTypeFiles.forEach(file => {
+    const serviceRelativePath = getRelativePathForImport(
+      options.outputDir,
+      file,
+    );
+
+    const serviceContent = fs.readFileSync(file).toString();
+    const tuples = parseTsConcatMultiple(serviceContent);
+
+    const service = require(file);
+    const name = service.name;
+
+    services.push({
+      name,
+      path: serviceRelativePath,
+      tuples,
+    });
+  });
+
+  // get service meta tuples
+
+  const { rawServiceMeta: serviceMeta } = await rawServiceMeta(
+    services,
+    outputDirImport,
+  );
+
+  // service types file content
+  const serviceTypesFileContent = Mustache.render(serviceTemplate, {
+    importForTuples: getImportForTuples(services),
+    services: services.map(({ path, name, tuples }, sIndex) => {
+      const actions: string[] = [];
+      const events: string[] = [];
+      tuples.actions.map((_, aIndex) => {
+        for (
+          let i = 0;
+          i < serviceMeta[getServiceActionTupleName(sIndex, aIndex)];
+          i++
+        ) {
+          actions.push(`${getServiceActionTupleName(sIndex, aIndex)}[${i}]`);
+        }
+      });
+      tuples.actions.map((_, aIndex) => {
+        for (
+          let i = 0;
+          i < serviceMeta[getServiceEventTupleName(sIndex, aIndex)];
+          i++
+        ) {
+          events.push(`${getServiceEventTupleName(sIndex, aIndex)}[${i}]`);
+        }
+      });
+
+      return {
+        path,
+        name: getServiceTypeName(name),
+        actions: actions.join(','),
+        events: events.join(','),
+      };
+    }),
+  });
+
+  formatAndSave(
+    serviceTypesFileContent,
+    path.join(options.outputDir, 'services.types.ts'),
+  );
+
+  const { meta, rawMetaNames: metaNames } = await rawMetaNames(
+    services,
+    outputDirImport,
+  );
 
   const callObj: {
-    [K: string]: { overloads: { in: string; out: string }[] };
+    [K: string]: { name: string; type: string; index: number };
   } = {};
   const emitObj: {
-    [K: string]: { overloads: { in: string }[] };
+    [K: string]: { name: string; type: string; index: number };
   } = {};
 
   // call
   services.forEach(svc => {
-    Array(meta[getServiceTypeName(svc.name)].actionsLength)
-      .fill(0)
-      .forEach((_, index) => {
-        const name = `${svc.name}.${
-          metaNames[
-            `Services${getServiceTypeName(svc.name)}ActionsName${index}`
-          ]
-        }`;
+    const { actionsLength, eventsLength } = meta[getServiceTypeName(svc.name)];
 
-        if (!callObj[name]) {
-          callObj[name] = {
-            overloads: [],
-          };
-        }
+    // actions GetCallParams/GetCallReturn
+    for (let index: number = 0; index < actionsLength; index++) {
+      const name = `${svc.name}.${
+        metaNames[`Services${getServiceTypeName(svc.name)}ActionsName${index}`]
+      }`;
 
-        callObj[name].overloads.push({
-          in: `Services.${getServiceTypeName(
-            svc.name,
-          )}.Actions[${index}]['in']`,
-          out: `Services.${getServiceTypeName(
-            svc.name,
-          )}.Actions[${index}]['out']`,
-        });
-      });
-  });
-
-  services.forEach(svc => {
-    Array(meta[getServiceTypeName(svc.name)].eventsLength)
-      .fill(0)
-      .forEach((_, index) => {
-        const name = `${svc.name}.${
-          metaNames[`Services${getServiceTypeName(svc.name)}EventsName${index}`]
-        }`;
-
-        if (!emitObj[name]) {
-          emitObj[name] = {
-            overloads: [],
-          };
-        }
-
-        emitObj[name].overloads.push({
-          in: `Services.${getServiceTypeName(svc.name)}.Events[${index}]['in']`,
-        });
-      });
-  });
-
-  let brokerTypesServiceActionNames =
-    'export type ServiceActionNames = Exclude<never';
-
-  brokerTypesFileContent += `
-  type GetCallParams = { `;
-  Object.keys(callObj).map(name => {
-    brokerTypesServiceActionNames += ` | '${name}'`;
-
-    brokerTypesFileContent += `'${name}': `;
-
-    if (callObj[name].overloads.length > 1) {
-      throw new Error(
-        `${name} has multiple overloads, please make sure u have only one declaration.`,
-      );
+      callObj[name] = {
+        name,
+        index,
+        type: getServiceTypeName(svc.name),
+      };
     }
 
-    callObj[name].overloads.map(one => {
-      brokerTypesFileContent += `${one.in}; `;
-    });
-  });
-  brokerTypesFileContent += '}';
-  brokerTypesServiceActionNames += ',never>';
+    // events GetEmitParams
+    for (let index: number = 0; index < eventsLength; index++) {
+      const name = `${svc.name}.${
+        metaNames[`Services${getServiceTypeName(svc.name)}EventsName${index}`]
+      }`;
 
-  brokerTypesFileContent += `
-  type GetCallReturn = { `;
-  Object.keys(callObj).map(name => {
-    brokerTypesFileContent += `'${name}': `;
-
-    if (callObj[name].overloads.length > 1) {
-      throw new Error(
-        `${name} has multiple overloads, please make sure u have only one declaration.`,
-      );
+      emitObj[name] = {
+        name,
+        index,
+        type: getServiceTypeName(svc.name),
+      };
     }
-
-    callObj[name].overloads.map(one => {
-      brokerTypesFileContent += `${one.out}; `;
-    });
   });
-  brokerTypesFileContent += '}';
 
-  // @TODO can events have overloads ? i think yes !
-  let brokerTypesServiceEventsNames =
-    'export type ServiceEventNames = Exclude<never';
-  brokerTypesFileContent += `
-  type GetEmitParams= { `;
-  Object.keys(emitObj).map(name => {
-    brokerTypesServiceEventsNames += ` | '${name}'`;
-
-    const overloadUnionStrict = `MoleculerTs.Union.Strict<${emitObj[
-      name
-    ].overloads
-      .map(one => one.in)
-      .join(' | ')}
-      >;`;
-
-    brokerTypesFileContent += `'${name}': ${overloadUnionStrict} `;
+  const brokerTypesFileContent = Mustache.render(brokerTemplate, {
+    callObj: Object.values(callObj),
+    emitObj: Object.values(emitObj),
+    ServiceNames: services
+      .filter(({ name }) => isServiceName(name))
+      .map(({ name }) => name),
+    ServiceActionNames: Object.keys(callObj),
+    ServiceEventNames: Object.keys(emitObj),
   });
-  brokerTypesFileContent += '}';
-  brokerTypesServiceEventsNames += ',never>';
-
-  brokerTypesFileContent += `
-  export type ServiceNames = Exclude<never `;
-  services.forEach((svc, index) => {
-    if (!isServiceName(svc.name)) {
-      return;
-    }
-    brokerTypesFileContent += `| '${svc.name}' `;
-  });
-  brokerTypesFileContent += ',never>;\n';
-  brokerTypesFileContent += `export type ServiceNamesEmitGroup = ServiceNames | ServiceNames[];
-    ${brokerTypesServiceEventsNames};
-    ${brokerTypesServiceActionNames}
-    `;
 
   formatAndSave(
     brokerTypesFileContent,

@@ -19,22 +19,26 @@
   },
   "scripts": {
     "test": "echo \"No test specified\" && exit 0",
-    "build": "tsc"
+    "build": "tsc && ts-node copy-templates.ts"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "glob": "^7.1.5",
     "glob-watcher": "^5.0.3",
-    "typescript-tuple": "^2.2.1",
-    "ts-toolbelt": "^4.10.0"
+    "mustache": "^3.1.0",
+    "ts-toolbelt": "^4.10.0",
+    "typescript-tuple": "^2.2.1"
   },
   "devDependencies": {
     "@types/glob": "^7.1.1",
     "@types/glob-watcher": "^5.0.0",
+    "@types/mustache": "^0.8.32",
     "@types/node": "^12.12.5",
     "@types/prettier": "^1.18.3",
+    "@types/shelljs": "^0.8.6",
     "prettier": "^1.18.2",
+    "shelljs": "^0.8.3",
     "ts-node": "^8.4.1",
     "ts-patch": "^1.0.2",
     "typescript": "^3.7.2"

@@ -9,5 +9,5 @@ export type OwnEvents = [
   Event<'closed', { nodeID: string; action: string }>,
 ];
 
-export type Actions = ConcatMultiple<[OwnActions]>;
-export type Events = ConcatMultiple<[OwnEvents]>;
+type Actions = ConcatMultiple<[OwnActions]>;
+type Events = ConcatMultiple<[OwnEvents]>;

@@ -18,5 +18,5 @@ export type OwnActions = [
 
 export type OwnEvents = [Event<'nodeChange', User>];
 
-export type Actions = ConcatMultiple<[OwnActions]>;
-export type Events = ConcatMultiple<[OwnEvents]>;
+type Actions = ConcatMultiple<[OwnActions]>;
+type Events = ConcatMultiple<[OwnEvents]>;
