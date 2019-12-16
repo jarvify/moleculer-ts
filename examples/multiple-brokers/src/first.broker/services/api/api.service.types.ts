@@ -1,5 +1,4 @@
 import { Action, Event, ConcatMultiple } from 'moleculer-ts';
-import { IncomingMessage } from 'http';
 export const name: 'api' = 'api';
 
 export type OwnActions = [
