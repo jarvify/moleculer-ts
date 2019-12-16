@@ -22,6 +22,9 @@ export interface ServiceBroker {
 type GetCallParams = {
   'api.request': Services.ApiServiceTypes.Actions[0]['in'];
   'api.context': Services.ApiServiceTypes.Actions[1]['in'];
+  'api.custom': Services.ApiServiceTypes.Actions[2]['in'];
+  'api.custom2': Services.ApiServiceTypes.Actions[3]['in'];
+  'api.custom3': Services.ApiServiceTypes.Actions[4]['in'];
   'v1.api.request': Services.V1apiServiceTypes.Actions[0]['in'];
   'v1.api.context': Services.V1apiServiceTypes.Actions[1]['in'];
   'user.create': Services.UserServiceTypes.Actions[0]['in'];
@@ -31,6 +34,9 @@ type GetCallParams = {
 type GetCallReturn = {
   'api.request': Services.ApiServiceTypes.Actions[0]['out'];
   'api.context': Services.ApiServiceTypes.Actions[1]['out'];
+  'api.custom': Services.ApiServiceTypes.Actions[2]['out'];
+  'api.custom2': Services.ApiServiceTypes.Actions[3]['out'];
+  'api.custom3': Services.ApiServiceTypes.Actions[4]['out'];
   'v1.api.request': Services.V1apiServiceTypes.Actions[0]['out'];
   'v1.api.context': Services.V1apiServiceTypes.Actions[1]['out'];
   'user.create': Services.UserServiceTypes.Actions[0]['out'];
@@ -49,6 +55,9 @@ export type ServiceActionNames = Exclude<
   | never
   | 'api.request'
   | 'api.context'
+  | 'api.custom'
+  | 'api.custom2'
+  | 'api.custom3'
   | 'v1.api.request'
   | 'v1.api.context'
   | 'user.create'

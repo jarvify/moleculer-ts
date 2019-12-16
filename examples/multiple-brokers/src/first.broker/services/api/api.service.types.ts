@@ -1,10 +1,8 @@
 import { Action, Event, ConcatMultiple } from 'moleculer-ts';
 
-import { SomeActions as Idk } from './tuple.test';
+import SomeActions2, { SomeActions3 } from './tuple.test2';
 
-import { SomeActions } from './tuple.test';
-
-import { SomeActions as SomeActions2 } from '@first.broker/services/api/tuple.test';
+import { SomeActions as SomeActions1 } from '@first.broker/services/api/tuple.test';
 
 // dont care ! but doable
 // import * as SomeActionsStar from './tuple.test';
@@ -20,5 +18,7 @@ export type OwnActions = [
 
 export type OwnEvents = [];
 
-type Actions = ConcatMultiple<[OwnActions]>;
+type Actions = ConcatMultiple<
+  [OwnActions, SomeActions1, SomeActions2, SomeActions3]
+>;
 type Events = ConcatMultiple<[OwnEvents]>;

@@ -185,11 +185,6 @@ function getTuplesNames(str: string) {
     .filter(one => one.length > 0);
 }
 
-// fromModule: './tuple.test'
-
-// we get array of concats !
-// Name + import path
-
 function getImportOfName(
   name: string,
   importRes: ReturnType<typeof parseTsImport>,
@@ -205,6 +200,13 @@ function getImportOfName(
         };
       }
     });
+
+    if (oneImport.defaultImport === name) {
+      result = {
+        name: 'default',
+        fromModule: oneImport.fromModule,
+      };
+    }
   });
 
   if (!result) {
@@ -258,19 +260,6 @@ export function parseTsConcatMultiple(str: string) {
     });
     result.events = eventTuples;
   }
-
-  // namedImports only - for first release
-  // if not found in name imports -> its exported local
-  // get relative path - if starts with . otherwise its fullpath - we dont care for it
-
-  /* 
-    {
-      defaultImport: null,
-      namedImports: [ { name: 'SomeActions', value: 'Idk' } ],
-      starImport: null,
-      fromModule: './tuple.test'
-    }
-  */
 
   return result;
 }
