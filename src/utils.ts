@@ -6,6 +6,8 @@ import path from 'path';
 import cp from 'child_process';
 import Mustache from 'mustache';
 
+import { parseTsConcatMultiple } from './parse-ts';
+
 type GenerateBrokerOptions = {
   serviceTypesPattern: string;
   outputDir: string;
@@ -66,6 +68,62 @@ function getRelativePathForImport(from: string, to: string) {
   return path.posix
     .relative(path.posix.normalize(from), path.posix.normalize(to))
     .replace(/\.ts$/, '');
+}
+
+type Services = {
+  name: string;
+  path: string;
+  tuples: ReturnType<typeof parseTsConcatMultiple>;
+}[];
+
+function getServiceActionTupleName(sIndex: number, aIndex: number) {
+  return `Service${sIndex}Action${aIndex}`;
+}
+
+function getServiceEventTupleName(sIndex: number, aIndex: number) {
+  return `Service${sIndex}Event${aIndex}`;
+}
+
+function getImportForTuples(services: Services, rootDir?: string): string {
+  let tuplesImport = '';
+
+  services.map((service, sIndex) => {
+    service.tuples.actions.map((action, aIndex) => {
+      let fromModule = action.fromModule;
+      if (fromModule && fromModule.length > 0 && fromModule.startsWith('.')) {
+        fromModule = `${rootDir ? `${rootDir}/` : ''}${path.posix.dirname(
+          service.path,
+        )}/${fromModule}`;
+      }
+      if (fromModule === null) {
+        fromModule = `${rootDir ? `${rootDir}/` : ''}${service.path}`;
+      }
+
+      tuplesImport += `import { ${action.name} as ${getServiceActionTupleName(
+        sIndex,
+        aIndex,
+      )} } from '${fromModule}';\n`;
+    });
+
+    service.tuples.events.map((event, aIndex) => {
+      let fromModule = event.fromModule;
+      if (fromModule && fromModule.length > 0 && fromModule.startsWith('.')) {
+        fromModule = `${rootDir ? `${rootDir}/` : ''}${path.posix.dirname(
+          service.path,
+        )}/${fromModule}`;
+      }
+      if (fromModule === null) {
+        fromModule = `${rootDir ? `${rootDir}/` : ''}${service.path}`;
+      }
+
+      tuplesImport += `import { ${event.name} as ${getServiceEventTupleName(
+        sIndex,
+        aIndex,
+      )} } from '${fromModule}';\n`;
+    });
+  });
+
+  return tuplesImport;
 }
 
 async function rawMetaNames(services: any[], outputDirImport: string) {
@@ -179,6 +237,68 @@ async function rawMetaNames(services: any[], outputDirImport: string) {
   };
 }
 
+async function rawServiceMeta(services: Services, outputDirImport: string) {
+  const importMoleculerTs = `import * as MoleculerTs from 'moleculer-ts'`;
+
+  let cpServiceMetaFile = ``;
+  cpServiceMetaFile += `
+     import { enumerate } from 'ts-transformer-enumerate';
+     ${importMoleculerTs};
+     ${getImportForTuples(services, outputDirImport)}
+   `;
+
+  cpServiceMetaFile += 'const meta: any = {';
+
+  services.forEach((service, sIndex) => {
+    service.tuples.actions.map((action, aIndex) => {
+      cpServiceMetaFile += `'${getServiceActionTupleName(
+        sIndex,
+        aIndex,
+      )}': Object.keys(enumerate<MoleculerTs.GetAllNameKeysAndLength<${getServiceActionTupleName(
+        sIndex,
+        aIndex,
+      )}>>()).length -1,`;
+    });
+    service.tuples.events.map((event, aIndex) => {
+      cpServiceMetaFile += `'${getServiceEventTupleName(
+        sIndex,
+        aIndex,
+      )}': Object.keys(enumerate<MoleculerTs.GetAllNameKeysAndLength<${getServiceEventTupleName(
+        sIndex,
+        aIndex,
+      )}>>()).length -1,`;
+    });
+  });
+
+  cpServiceMetaFile += '}\n';
+
+  cpServiceMetaFile += 'console.log(JSON.stringify(meta));';
+  const cpServiceMeta = cp.spawn(
+    `${path.join('node_modules', '.bin', 'ts-node')}`,
+    ['-e', cpServiceMetaFile],
+  );
+
+  let rawServiceMeta = '';
+
+  cpServiceMeta.stdout.on('data', data => {
+    rawServiceMeta += data;
+  });
+
+  cpServiceMeta.stderr.on('data', data => {
+    console.error(`stderr: ${data}`);
+  });
+
+  await new Promise(resolve => {
+    cpServiceMeta.on('close', code => {
+      resolve();
+    });
+  });
+
+  return {
+    rawServiceMeta: JSON.parse(rawServiceMeta),
+  };
+}
+
 export async function generateBroker(options: GenerateBrokerOptions) {
   const isServiceName =
     options.isServiceName ||
@@ -191,7 +311,7 @@ export async function generateBroker(options: GenerateBrokerOptions) {
 
   const serviceTypeFiles = glob.sync(options.serviceTypesPattern);
 
-  const services: { name: string; path: string }[] = [];
+  const services: Services = [];
 
   // init
   serviceTypeFiles.forEach(file => {
@@ -200,21 +320,58 @@ export async function generateBroker(options: GenerateBrokerOptions) {
       file,
     );
 
+    const serviceContent = fs.readFileSync(file).toString();
+    const tuples = parseTsConcatMultiple(serviceContent);
+
     const service = require(file);
     const name = service.name;
 
     services.push({
       name,
       path: serviceRelativePath,
+      tuples,
     });
   });
 
+  // get service meta tuples
+
+  const { rawServiceMeta: serviceMeta } = await rawServiceMeta(
+    services,
+    outputDirImport,
+  );
+
   // service types file content
   const serviceTypesFileContent = Mustache.render(serviceTemplate, {
-    services: services.map(({ path, name }) => ({
-      path,
-      name: getServiceTypeName(name),
-    })),
+    importForTuples: getImportForTuples(services),
+    services: services.map(({ path, name, tuples }, sIndex) => {
+      const actions: string[] = [];
+      const events: string[] = [];
+      tuples.actions.map((_, aIndex) => {
+        for (
+          let i = 0;
+          i < serviceMeta[getServiceActionTupleName(sIndex, aIndex)];
+          i++
+        ) {
+          actions.push(`${getServiceActionTupleName(sIndex, aIndex)}[${i}]`);
+        }
+      });
+      tuples.actions.map((_, aIndex) => {
+        for (
+          let i = 0;
+          i < serviceMeta[getServiceEventTupleName(sIndex, aIndex)];
+          i++
+        ) {
+          events.push(`${getServiceEventTupleName(sIndex, aIndex)}[${i}]`);
+        }
+      });
+
+      return {
+        path,
+        name: getServiceTypeName(name),
+        actions: actions.join(','),
+        events: events.join(','),
+      };
+    }),
   });
 
   formatAndSave(
@@ -273,7 +430,6 @@ export async function generateBroker(options: GenerateBrokerOptions) {
       .filter(({ name }) => isServiceName(name))
       .map(({ name }) => name),
     ServiceActionNames: Object.keys(callObj),
-    // @TODO can events have overloads ? I think yes !
     ServiceEventNames: Object.keys(emitObj),
   });
 

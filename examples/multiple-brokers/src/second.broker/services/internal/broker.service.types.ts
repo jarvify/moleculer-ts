@@ -5,5 +5,5 @@ export const name: '$broker' = '$broker';
 export type OwnActions = [];
 export type OwnEvents = [Event<'started', {}>];
 
-export type Actions = ConcatMultiple<[OwnActions]>;
-export type Events = ConcatMultiple<[OwnEvents]>;
+type Actions = ConcatMultiple<[OwnActions]>;
+type Events = ConcatMultiple<[OwnEvents]>;
