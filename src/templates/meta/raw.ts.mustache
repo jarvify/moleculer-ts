@@ -1,0 +1,15 @@
+import * as Services from '{{{outputDirImport}}}/services.types';
+import { enumerate } from 'ts-transformer-enumerate';
+import * as MoleculerTs from 'moleculer-ts';
+
+const meta: any = {
+{{#serviceNames}}
+  '{{.}}': {
+    actionsLength: Object.keys(enumerate<MoleculerTs.GetAllNameKeysAndLength<Services.{{.}}.Actions>>()).length -1,
+    eventsLength: Object.keys(enumerate<MoleculerTs.GetAllNameKeysAndLength<Services.{{.}}.Events>>()).length -1,
+    actionsEnum: enumerate<MoleculerTs.GetNames<Services.{{.}}.Actions>>()
+  },
+{{/serviceNames}}
+};
+
+console.log(JSON.stringify(meta));

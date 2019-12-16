@@ -38,7 +38,15 @@ const serviceTemplate = fs.readFileSync(
   'utf-8',
 );
 const serviceMetaTemplate = fs.readFileSync(
-  path.join(__dirname, 'templates', 'metaService.ts.mustache'),
+  path.join(__dirname, 'templates/meta', 'service.ts.mustache'),
+  'utf-8',
+);
+const rawMetaTemplate = fs.readFileSync(
+  path.join(__dirname, 'templates/meta', 'raw.ts.mustache'),
+  'utf-8',
+);
+const namesMetaTemplate = fs.readFileSync(
+  path.join(__dirname, 'templates/meta', 'names.ts.mustache'),
   'utf-8',
 );
 const brokerTemplate = fs.readFileSync(
@@ -142,34 +150,15 @@ function getImportForTuples(
 }
 
 async function rawMetaNames(services: Service[], outputDirImport: string) {
-  // broker type file gen
-  let cpMetaFile = ``;
-  cpMetaFile += `
-    import * as Services from '${outputDirImport}/services.types';
-    import { enumerate } from 'ts-transformer-enumerate';
-    import * as MoleculerTs from 'moleculer-ts'\n;
-  `;
-
-  cpMetaFile += 'const meta: any = {';
-  services.forEach(svc => {
-    cpMetaFile += `'${getServiceTypeName(
-      svc.name,
-    )}': { actionsLength: Object.keys(enumerate<MoleculerTs.GetAllNameKeysAndLength<Services.${getServiceTypeName(
-      svc.name,
-    )}.Actions>>()).length -1, eventsLength: Object.keys(enumerate<MoleculerTs.GetAllNameKeysAndLength<Services.${getServiceTypeName(
-      svc.name,
-    )}.Events>>()).length -1, actionsEnum: enumerate<MoleculerTs.GetNames<Services.${getServiceTypeName(
-      svc.name,
-    )}.Actions>>() },`;
+  // service types meta file content
+  const metaFileContent = Mustache.render(rawMetaTemplate, {
+    serviceNames: services.map(({ name }) => getServiceTypeName(name)),
+    outputDirImport,
   });
-
-  cpMetaFile += '}\n';
-
-  cpMetaFile += 'console.log(JSON.stringify(meta));';
 
   const cpMeta = cp.spawn(`${path.join('node_modules', '.bin', 'ts-node')}`, [
     '-e',
-    cpMetaFile,
+    metaFileContent,
   ]);
 
   let rawMeta = '';
@@ -191,43 +180,26 @@ async function rawMetaNames(services: Service[], outputDirImport: string) {
   const meta = JSON.parse(rawMeta);
 
   // broker action names
-  let cpMetaNamesFile = ``;
-  cpMetaNamesFile += `
-    import * as Services from '${outputDirImport}/services.types';
-    import { enumerate } from 'ts-transformer-enumerate';
-    import * as MoleculerTs from 'moleculer-ts'\n;
-  `;
+  const names: any[] = [];
 
-  cpMetaNamesFile += 'const meta: any = {';
   services.forEach(svc => {
-    Array(meta[getServiceTypeName(svc.name)].actionsLength)
-      .fill(0)
-      .forEach((_, index) => {
-        cpMetaNamesFile += `Services${getServiceTypeName(
-          svc.name,
-        )}ActionsName${index}: Object.keys(enumerate<Services.${getServiceTypeName(
-          svc.name,
-        )}.Actions[${index}]['name']>())[0],`;
-      });
+    const { actionsLength, eventsLength } = meta[getServiceTypeName(svc.name)];
 
-    Array(meta[getServiceTypeName(svc.name)].eventsLength)
-      .fill(0)
-      .forEach((_, index) => {
-        cpMetaNamesFile += `Services${getServiceTypeName(
-          svc.name,
-        )}EventsName${index}: Object.keys(enumerate<Services.${getServiceTypeName(
-          svc.name,
-        )}.Events[${index}]['name']>())[0],`;
-      });
+    names.push({
+      name: getServiceTypeName(svc.name),
+      actions: Array.from(Array(actionsLength).keys()),
+      events: Array.from(Array(eventsLength).keys()),
+    });
   });
 
-  cpMetaNamesFile += '}\n';
-
-  cpMetaNamesFile += 'console.log(JSON.stringify(meta));';
+  const metaNamesFileContent = Mustache.render(namesMetaTemplate, {
+    outputDirImport,
+    names,
+  });
 
   const cpMetaNames = cp.spawn(
     `${path.join('node_modules', '.bin', 'ts-node')}`,
-    ['-e', cpMetaNamesFile],
+    ['-e', metaNamesFileContent],
   );
 
   let rawMetaNames = '';
@@ -391,8 +363,7 @@ export async function generateBroker(options: GenerateBrokerOptions) {
 
   // call
   services.forEach(svc => {
-    const { actionsLength } = meta[getServiceTypeName(svc.name)];
-    const { eventsLength } = meta[getServiceTypeName(svc.name)];
+    const { actionsLength, eventsLength } = meta[getServiceTypeName(svc.name)];
 
     // actions GetCallParams/GetCallReturn
     for (let index: number = 0; index < actionsLength; index++) {
