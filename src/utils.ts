@@ -270,19 +270,12 @@ export async function generateBroker(options: GenerateBrokerOptions) {
     callObj: Object.values(callObj),
     emitObj: Object.values(emitObj),
     ServiceNames: services
-      .filter(({ name }) => !isServiceName(name))
-      .map(({ name }) => `'${name}'`)
-      .join('|'),
-    ServiceActionNames: Object.keys(callObj)
-      .map(name => `'${name}'`)
-      .join('|'),
-    // @TODO can events have overloads ? i think yes !
-    ServiceEventNames: Object.keys(emitObj)
-      .map(name => `'${name}'`)
-      .join('|'),
+      .filter(({ name }) => isServiceName(name))
+      .map(({ name }) => name),
+    ServiceActionNames: Object.keys(callObj),
+    // @TODO can events have overloads ? I think yes !
+    ServiceEventNames: Object.keys(emitObj),
   });
-
-  console.log(brokerTypesFileContent);
 
   formatAndSave(
     brokerTypesFileContent,

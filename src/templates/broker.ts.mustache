@@ -19,7 +19,6 @@ export interface ServiceBroker {
   broadcastLocal: ServiceBroker['emit']
 }
 
-
 type GetCallParams = {
 {{#callObj}}
   '{{name}}': Services.{{type}}.Actions[{{index}}]['in'];
@@ -38,7 +37,7 @@ type GetEmitParams = {
 {{/emitObj}}
 };
 
-export type ServiceNames = Exclude<never | {{{ServiceNames}}}, never>;
-export type ServiceEventNames = Exclude<never | {{{ServiceEventNames}}}, never>;
-export type ServiceActionNames = Exclude<never | {{{ServiceActionNames}}}, never>;
+export type ServiceNames = Exclude<never {{#ServiceNames}}| '{{.}}'{{/ServiceNames}}, never>;
+export type ServiceEventNames = Exclude<never {{#ServiceEventNames}}| '{{.}}'{{/ServiceEventNames}}, never>;
+export type ServiceActionNames = Exclude<never {{#ServiceActionNames}}| '{{.}}'{{/ServiceActionNames}}, never>;
 export type ServiceNamesEmitGroup = ServiceNames | ServiceNames[];
