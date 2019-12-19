@@ -1,6 +1,6 @@
 {
   "name": "moleculer-ts",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Definitive TypeScript support for Moleculer services",
   "keywords": [
     "moleculer",
