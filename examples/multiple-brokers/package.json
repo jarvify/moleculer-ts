@@ -14,7 +14,7 @@
   "dependencies": {
     "moleculer": "^0.13.11",
     "moleculer-decorators": "^1.1.1",
-    "moleculer-ts": "^1.0.4"
+    "moleculer-ts": "^1.0.5"
   },
   "devDependencies": {
     "prettier": "^1.18.2",
