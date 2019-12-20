@@ -5,9 +5,9 @@ import * as MoleculerTs from 'moleculer-ts';
 const meta: any = {
 {{#serviceNames}}
   '{{.}}': {
-    actionsLength: Object.keys(enumerate<MoleculerTs.GetAllNameKeysAndLength<Services.{{.}}.Actions>>()).length -1,
-    eventsLength: Object.keys(enumerate<MoleculerTs.GetAllNameKeysAndLength<Services.{{.}}.Events>>()).length -1,
-    actionsEnum: enumerate<MoleculerTs.GetNames<Services.{{.}}.Actions>>()
+    actionsLength: Object.keys(enumerate<MoleculerTs.GetAllNameKeysAndLength<Services.{{.}}.DerivedActions>>()).length -1,
+    eventsLength: Object.keys(enumerate<MoleculerTs.GetAllNameKeysAndLength<Services.{{.}}.DerivedEvents>>()).length -1,
+    actionsEnum: enumerate<MoleculerTs.GetNames<Services.{{.}}.DerivedActions>>()
   },
 {{/serviceNames}}
 };
