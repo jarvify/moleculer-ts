@@ -21,19 +21,19 @@ export interface ServiceBroker {
 
 type GetCallParams = {
 {{#callObj}}
-  '{{name}}': Services.{{type}}.Actions[{{index}}]['in'];
+  '{{name}}': Services.{{type}}.DerivedActions[{{index}}]['in'];
 {{/callObj}}
 };
 
 type GetCallReturn = {
 {{#callObj}}
-  '{{name}}': Services.{{type}}.Actions[{{index}}]['out'];
+  '{{name}}': Services.{{type}}.DerivedActions[{{index}}]['out'];
 {{/callObj}}
 };
 
 type GetEmitParams = {
 {{#emitObj}}
-  '{{name}}': MoleculerTs.Union.Strict<Services.{{type}}.Events[{{index}}]['in']>;
+  '{{name}}': MoleculerTs.Union.Strict<Services.{{type}}.DerivedEvents[{{index}}]['in']>;
 {{/emitObj}}
 };
 
