@@ -13,98 +13,98 @@ import { OwnActions as Service5Action0 } from '../services/test/test.service.typ
 import { OwnEvents as Service5Event0 } from '../services/test/test.service.types';
 
 declare module '../services/internal/broker.service.types' {
-  type Actions = [];
-  type Events = [Service0Event0[0]];
+  type DerivedActions = [];
+  type DerivedEvents = [Service0Event0[0]];
 
   type ActionParams<
-    T extends MoleculerTs.GetNames<Actions>
-  > = MoleculerTs.GetParamsStrict<Actions, T>;
+    T extends MoleculerTs.GetNames<DerivedActions>
+  > = MoleculerTs.GetParamsStrict<DerivedActions, T>;
   type ActionReturn<
-    T extends MoleculerTs.GetNames<Actions>
-  > = MoleculerTs.GetReturn<Actions, T>;
+    T extends MoleculerTs.GetNames<DerivedActions>
+  > = MoleculerTs.GetReturn<DerivedActions, T>;
   type EventParams<
-    T extends MoleculerTs.GetNames<Events>
-  > = MoleculerTs.GetParamsStrict<Events, T>;
+    T extends MoleculerTs.GetNames<DerivedEvents>
+  > = MoleculerTs.GetParamsStrict<DerivedEvents, T>;
   type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<OwnActions>;
 }
 
 declare module '../services/internal/circuit-breaker.service.types' {
-  type Actions = [];
-  type Events = [Service1Event0[0], Service1Event0[1], Service1Event0[2]];
+  type DerivedActions = [];
+  type DerivedEvents = [Service1Event0[0], Service1Event0[1], Service1Event0[2]];
 
   type ActionParams<
-    T extends MoleculerTs.GetNames<Actions>
-  > = MoleculerTs.GetParamsStrict<Actions, T>;
+    T extends MoleculerTs.GetNames<DerivedActions>
+  > = MoleculerTs.GetParamsStrict<DerivedActions, T>;
   type ActionReturn<
-    T extends MoleculerTs.GetNames<Actions>
-  > = MoleculerTs.GetReturn<Actions, T>;
+    T extends MoleculerTs.GetNames<DerivedActions>
+  > = MoleculerTs.GetReturn<DerivedActions, T>;
   type EventParams<
-    T extends MoleculerTs.GetNames<Events>
-  > = MoleculerTs.GetParamsStrict<Events, T>;
+    T extends MoleculerTs.GetNames<DerivedEvents>
+  > = MoleculerTs.GetParamsStrict<DerivedEvents, T>;
   type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<OwnActions>;
 }
 
 declare module '../services/internal/node.service.types' {
-  type Actions = [];
-  type Events = [Service2Event0[0], Service2Event0[1], Service2Event0[2]];
+  type DerivedActions = [];
+  type DerivedEvents = [Service2Event0[0], Service2Event0[1], Service2Event0[2]];
 
   type ActionParams<
-    T extends MoleculerTs.GetNames<Actions>
-  > = MoleculerTs.GetParamsStrict<Actions, T>;
+    T extends MoleculerTs.GetNames<DerivedActions>
+  > = MoleculerTs.GetParamsStrict<DerivedActions, T>;
   type ActionReturn<
-    T extends MoleculerTs.GetNames<Actions>
-  > = MoleculerTs.GetReturn<Actions, T>;
+    T extends MoleculerTs.GetNames<DerivedActions>
+  > = MoleculerTs.GetReturn<DerivedActions, T>;
   type EventParams<
-    T extends MoleculerTs.GetNames<Events>
-  > = MoleculerTs.GetParamsStrict<Events, T>;
+    T extends MoleculerTs.GetNames<DerivedEvents>
+  > = MoleculerTs.GetParamsStrict<DerivedEvents, T>;
   type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<OwnActions>;
 }
 
 declare module '../services/internal/services.service.types' {
-  type Actions = [];
-  type Events = [Service3Event0[0]];
+  type DerivedActions = [];
+  type DerivedEvents = [Service3Event0[0]];
 
   type ActionParams<
-    T extends MoleculerTs.GetNames<Actions>
-  > = MoleculerTs.GetParamsStrict<Actions, T>;
+    T extends MoleculerTs.GetNames<DerivedActions>
+  > = MoleculerTs.GetParamsStrict<DerivedActions, T>;
   type ActionReturn<
-    T extends MoleculerTs.GetNames<Actions>
-  > = MoleculerTs.GetReturn<Actions, T>;
+    T extends MoleculerTs.GetNames<DerivedActions>
+  > = MoleculerTs.GetReturn<DerivedActions, T>;
   type EventParams<
-    T extends MoleculerTs.GetNames<Events>
-  > = MoleculerTs.GetParamsStrict<Events, T>;
+    T extends MoleculerTs.GetNames<DerivedEvents>
+  > = MoleculerTs.GetParamsStrict<DerivedEvents, T>;
   type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<OwnActions>;
 }
 
 declare module '../services/internal/transporter.service.types' {
-  type Actions = [];
-  type Events = [Service4Event0[0], Service4Event0[1]];
+  type DerivedActions = [];
+  type DerivedEvents = [Service4Event0[0], Service4Event0[1]];
 
   type ActionParams<
-    T extends MoleculerTs.GetNames<Actions>
-  > = MoleculerTs.GetParamsStrict<Actions, T>;
+    T extends MoleculerTs.GetNames<DerivedActions>
+  > = MoleculerTs.GetParamsStrict<DerivedActions, T>;
   type ActionReturn<
-    T extends MoleculerTs.GetNames<Actions>
-  > = MoleculerTs.GetReturn<Actions, T>;
+    T extends MoleculerTs.GetNames<DerivedActions>
+  > = MoleculerTs.GetReturn<DerivedActions, T>;
   type EventParams<
-    T extends MoleculerTs.GetNames<Events>
-  > = MoleculerTs.GetParamsStrict<Events, T>;
+    T extends MoleculerTs.GetNames<DerivedEvents>
+  > = MoleculerTs.GetParamsStrict<DerivedEvents, T>;
   type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<OwnActions>;
 }
 
 declare module '../services/test/test.service.types' {
-  type Actions = [];
-  type Events = [];
+  type DerivedActions = [];
+  type DerivedEvents = [];
 
   type ActionParams<
-    T extends MoleculerTs.GetNames<Actions>
-  > = MoleculerTs.GetParamsStrict<Actions, T>;
+    T extends MoleculerTs.GetNames<DerivedActions>
+  > = MoleculerTs.GetParamsStrict<DerivedActions, T>;
   type ActionReturn<
-    T extends MoleculerTs.GetNames<Actions>
-  > = MoleculerTs.GetReturn<Actions, T>;
+    T extends MoleculerTs.GetNames<DerivedActions>
+  > = MoleculerTs.GetReturn<DerivedActions, T>;
   type EventParams<
-    T extends MoleculerTs.GetNames<Events>
-  > = MoleculerTs.GetParamsStrict<Events, T>;
+    T extends MoleculerTs.GetNames<DerivedEvents>
+  > = MoleculerTs.GetParamsStrict<DerivedEvents, T>;
   type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<OwnActions>;
 }
 

@@ -5,12 +5,12 @@ import { {{name}} as {{alias}} } from '{{{module}}}';
 
 {{#services}}
 declare module '{{{path}}}' {
-  type Actions = [{{actions}}]
-  type Events = [{{events}}]
+  type DerivedActions = [{{actions}}]
+  type DerivedEvents = [{{events}}]
 
-  type ActionParams<T extends MoleculerTs.GetNames<Actions>> = MoleculerTs.GetParamsStrict<Actions, T>;
-  type ActionReturn<T extends MoleculerTs.GetNames<Actions>> = MoleculerTs.GetReturn<Actions, T>;
-  type EventParams<T extends MoleculerTs.GetNames<Events>> = MoleculerTs.GetParamsStrict<Events, T>;
+  type ActionParams<T extends MoleculerTs.GetNames<DerivedActions>> = MoleculerTs.GetParamsStrict<DerivedActions, T>;
+  type ActionReturn<T extends MoleculerTs.GetNames<DerivedActions>> = MoleculerTs.GetReturn<DerivedActions, T>;
+  type EventParams<T extends MoleculerTs.GetNames<DerivedEvents>> = MoleculerTs.GetParamsStrict<DerivedEvents, T>;
   type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<OwnActions>;
 }
 
