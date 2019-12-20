@@ -135,6 +135,8 @@ export default {
 
 ### Advanced usage
 
+![Moleculer TypeScript](examples/moleculer-ts.gif)
+
 Want to see more advanced usage? You can enable realtime typescript checking in your IDE
 
 Head to [examples](/examples#readme) to find out more  
