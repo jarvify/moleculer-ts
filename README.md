@@ -103,7 +103,7 @@ import your generated types and use them as input/output definition in service a
 
 ```typescript
 import { Context } from 'moleculer';
-import { UserServiceTypes } from 'path/to/types';
+import { UserServiceTypes } from '{brokerRootDir}/types';
 
 export default {
     name: UserServiceTypes.name,
