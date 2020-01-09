@@ -15,7 +15,7 @@
   "dependencies": {
     "moleculer": "^0.13.11",
     "moleculer-decorators": "^1.1.1",
-    "moleculer-ts": "file:../.."
+    "moleculer-ts": "^2.0.0"
   },
   "devDependencies": {
     "glob-watcher": "^5.0.3",
