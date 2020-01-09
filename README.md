@@ -1,8 +1,16 @@
-# moleculer-ts
+![Moleculer logo](https://raw.githubusercontent.com/ice-services/moleculer/HEAD/docs/assets/logo.png)
+
+
+[![npm](https://img.shields.io/npm/v/moleculer-ts.svg)](https://www.npmjs.com/package/moleculer-ts) 
+[![npm](https://img.shields.io/npm/dm/moleculer-ts.svg)](https://www.npmjs.com/package/moleculer-ts) 
+[![GitHub issues](https://img.shields.io/github/issues/jarvify/moleculer-ts.svg)](https://github.com/jarvify/moleculer-ts/issues) 
+[![Powered by moleculer](https://img.shields.io/badge/Powered%20by-Moleculer-green.svg?colorB=0e83cd)](http://moleculer.services/)
+
+# Moleculer TypeScript generator for services types
 
 ## Description
 
-moleculer-ts is a tool which generates [moleculer](https://github.com/moleculerjs/moleculer) types for your sevices actions & events.
+`moleculer-ts` is a tool which generates [moleculer](https://github.com/moleculerjs/moleculer) types for your sevices actions & events.
 
 ## Features
 
@@ -103,7 +111,7 @@ import your generated types and use them as input/output definition in service a
 
 ```typescript
 import { Context } from 'moleculer';
-import { UserServiceTypes } from 'path/to/types';
+import { UserServiceTypes } from '{brokerRootDir}/types';
 
 export default {
     name: UserServiceTypes.name,
@@ -126,6 +134,8 @@ export default {
 ```
 
 ### Advanced usage
+
+![Moleculer TypeScript](examples/moleculer-ts.gif)
 
 Want to see more advanced usage? You can enable realtime typescript checking in your IDE
 
