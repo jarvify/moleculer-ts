@@ -13,5 +13,5 @@ export type OwnEvents = [
   Event<'disconnected', { node: NodeInfo; unexpected: boolean }>,
 ];
 
-type Actions = ConcatMultiple<[OwnActions]>;
-type Events = ConcatMultiple<[OwnEvents]>;
+export type Actions = ConcatMultiple<[OwnActions]>;
+export type Events = ConcatMultiple<[OwnEvents]>;

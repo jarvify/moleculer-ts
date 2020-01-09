@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "dev:watch": "ts-node src/dev.watch.ts",
+    "dev:watch": "ts-node src/bin/dev.watch.ts",
+    "dev:broker:gen": "ts-node src/bin/dev.broker.gen.ts",
     "postinstall": "ts-patch install"
   },
   "author": "",
@@ -14,7 +15,7 @@
   "dependencies": {
     "moleculer": "^0.13.11",
     "moleculer-decorators": "^1.1.1",
-    "moleculer-ts": "^1.0.5"
+    "moleculer-ts": "file:../.."
   },
   "devDependencies": {
     "prettier": "^1.18.2",

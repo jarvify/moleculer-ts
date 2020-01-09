@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "dev:watch": "ts-node src/dev.watch.ts",
+    "dev:watch": "ts-node src/bin/dev.watch.ts",
+    "dev:broker:gen": "ts-node src/bin/dev.broker.gen.ts",
     "postinstall": "ts-patch install"
   },
   "author": "",
@@ -14,14 +15,15 @@
   "dependencies": {
     "moleculer": "^0.13.11",
     "moleculer-decorators": "^1.1.1",
-    "moleculer-ts": "^1.0.5"
+    "moleculer-ts": "file:../.."
   },
   "devDependencies": {
+    "glob-watcher": "^5.0.3",
     "prettier": "^1.18.2",
     "ts-node": "^8.4.1",
     "ts-patch": "^1.0.4",
     "ts-transformer-enumerate": "^0.4.0",
-    "typescript-transform-paths": "^1.1.11",
-    "typescript": "^3.7.3"
+    "typescript": "^3.7.3",
+    "typescript-transform-paths": "^1.1.11"
   }
 }
