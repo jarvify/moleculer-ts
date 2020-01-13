@@ -1,9 +1,8 @@
 ![Moleculer logo](https://raw.githubusercontent.com/ice-services/moleculer/HEAD/docs/assets/logo.png)
 
-
-[![npm](https://img.shields.io/npm/v/moleculer-ts.svg)](https://www.npmjs.com/package/moleculer-ts) 
-[![npm](https://img.shields.io/npm/dm/moleculer-ts.svg)](https://www.npmjs.com/package/moleculer-ts) 
-[![GitHub issues](https://img.shields.io/github/issues/jarvify/moleculer-ts.svg)](https://github.com/jarvify/moleculer-ts/issues) 
+[![npm](https://img.shields.io/npm/v/moleculer-ts.svg)](https://www.npmjs.com/package/moleculer-ts)
+[![npm](https://img.shields.io/npm/dm/moleculer-ts.svg)](https://www.npmjs.com/package/moleculer-ts)
+[![GitHub issues](https://img.shields.io/github/issues/jarvify/moleculer-ts.svg)](https://github.com/jarvify/moleculer-ts/issues)
 [![Powered by moleculer](https://img.shields.io/badge/Powered%20by-Moleculer-green.svg?colorB=0e83cd)](http://moleculer.services/)
 
 # Moleculer TypeScript generator for services types
@@ -41,9 +40,7 @@ Add `ts-transformer-enumerate` plugin to your `compilerOptions` in your `tsconfi
 ```json
 {
   "compilerOptions": {
-    "plugins": [
-      { "transform": "ts-transformer-enumerate/transformer" },
-    ]
+    "plugins": [{ "transform": "ts-transformer-enumerate/transformer" }]
   }
 }
 ```
@@ -52,15 +49,14 @@ You should be good to go
 
 ### How to generate
 
-
-#### *.service.types module structure
+#### \*.service.types module structure
 
 Define your service types interface
 
 ```typescript
 import { Action, Event, ConcatMultiple } from 'moleculer-ts';
 
-// required to specify your service 
+// required to specify your service
 export const name: 'serviceName' = 'serviceName';
 
 // export list of own service actions
@@ -69,28 +65,24 @@ export type OwnActions = [];
 // export list of own service events
 export type OwnEvents = [];
 
-// concat service's own actions/events with mixins inherited types 
+// concat service's own actions/events with mixins inherited types
 export type Actions = ConcatMultiple<[OwnActions]>;
 export type Events = ConcatMultiple<[OwnEvents]>;
 ```
 
-#### Write your dev.watch.ts script
+#### Write your dev.broker.gen.ts script
 
-Write your generator module. Use `generateBrokerWatch` to scan types and prints it in `outputDir`
+Write your generator module. Use `generateBroker` to scan types and prints it in `outputDir`
 
 ```typescript
-import { generateBrokerWatch } from 'moleculer-ts';
+import { generateBroker } from 'moleculer-ts';
 
 (async () => {
   const brokerRootDir = `${process.cwd()}/src`;
 
-  const watcher = await generateBrokerWatch({
+  await generateBroker({
     serviceTypesPattern: `${brokerRootDir}/**/*.service.types.ts`,
     outputDir: `${brokerRootDir}/types`,
-  });
-
-  watcher.on('change', filename => {
-    console.log(`Generate broker, file changed: `, filename);
   });
 })();
 ```
@@ -99,9 +91,9 @@ Run this script from `package.json`
 
 ```json
 {
-    "scripts": {
-      "dev:watch": "ts-node src/dev.watch.ts",
-    }
+  "scripts": {
+    "dev:broker:gen": "ts-node src/dev.broker.gen.ts"
+  }
 }
 ```
 
@@ -114,23 +106,23 @@ import { Context } from 'moleculer';
 import { UserServiceTypes } from '{brokerRootDir}/types';
 
 export default {
-    name: UserServiceTypes.name,
-    actions: {
-        async get(
-          ctx: Context<UserServiceTypes.ActionParams<'get'>>
-        ): Promise<UserServiceTypes.ActionReturn<'get'>> {
-            // fully typed params
-            const { params } = ctx;
-        
-            // Return matching output
-            return {
-              id: 'a',
-              email: 'a',
-              name: 'a'
-            };
-        },
-    }
-}
+  name: UserServiceTypes.name,
+  actions: {
+    async get(
+      ctx: Context<UserServiceTypes.ActionParams<'get'>>,
+    ): Promise<UserServiceTypes.ActionReturn<'get'>> {
+      // fully typed params
+      const { params } = ctx;
+
+      // Return matching output
+      return {
+        id: 'a',
+        email: 'a',
+        name: 'a',
+      };
+    },
+  },
+};
 ```
 
 ### Advanced usage
@@ -139,4 +131,4 @@ export default {
 
 Want to see more advanced usage? You can enable realtime typescript checking in your IDE
 
-Head to [examples](/examples#readme) to find out more  
+Head to [examples](/examples#readme) to find out more
