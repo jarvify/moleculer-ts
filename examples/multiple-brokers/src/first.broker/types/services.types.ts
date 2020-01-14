@@ -40,7 +40,7 @@ declare module '../services/user/user.service.types' {
 }
 
 import * as ApiServiceTypes from '../services/api/api.service.types';
-import * as V1apiServiceTypes from '../services/api/v1.api.service.types';
+import * as V1ApiServiceTypes from '../services/api/v1.api.service.types';
 import * as UserServiceTypes from '../services/user/user.service.types';
 
-export { ApiServiceTypes, V1apiServiceTypes, UserServiceTypes };
+export { ApiServiceTypes, V1ApiServiceTypes, UserServiceTypes };

@@ -12,6 +12,8 @@ brokers.forEach(async broker => {
   const generateBrokerOptions = {
     serviceTypesPattern: `${brokerRootDir}/**/*.service.types.ts`,
     outputDir: `${brokerRootDir}/types`,
+    generateParamsSchema: true,
+    generateParamsAssert: true,
   };
 
   if (isWatchMode()) {

@@ -28,13 +28,13 @@ type GetEmitParams = {
     Services.BrokerServiceTypes.Events[0]['in']
   >;
   '$circuit-breaker.opened': MoleculerTs.Union.Strict<
-    Services.CircuitbreakerServiceTypes.Events[0]['in']
+    Services.CircuitBreakerServiceTypes.Events[0]['in']
   >;
   '$circuit-breaker.half-opened': MoleculerTs.Union.Strict<
-    Services.CircuitbreakerServiceTypes.Events[1]['in']
+    Services.CircuitBreakerServiceTypes.Events[1]['in']
   >;
   '$circuit-breaker.closed': MoleculerTs.Union.Strict<
-    Services.CircuitbreakerServiceTypes.Events[2]['in']
+    Services.CircuitBreakerServiceTypes.Events[2]['in']
   >;
   '$node.connected': MoleculerTs.Union.Strict<
     Services.NodeServiceTypes.Events[0]['in']

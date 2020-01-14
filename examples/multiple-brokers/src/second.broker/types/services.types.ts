@@ -79,7 +79,7 @@ declare module '../services/test/test.service.types' {
 }
 
 import * as BrokerServiceTypes from '../services/internal/broker.service.types';
-import * as CircuitbreakerServiceTypes from '../services/internal/circuit-breaker.service.types';
+import * as CircuitBreakerServiceTypes from '../services/internal/circuit-breaker.service.types';
 import * as NodeServiceTypes from '../services/internal/node.service.types';
 import * as ServicesServiceTypes from '../services/internal/services.service.types';
 import * as TransporterServiceTypes from '../services/internal/transporter.service.types';
@@ -87,7 +87,7 @@ import * as TestServiceTypes from '../services/test/test.service.types';
 
 export {
   BrokerServiceTypes,
-  CircuitbreakerServiceTypes,
+  CircuitBreakerServiceTypes,
   NodeServiceTypes,
   ServicesServiceTypes,
   TransporterServiceTypes,

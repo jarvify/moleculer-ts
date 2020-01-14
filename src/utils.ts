@@ -8,6 +8,8 @@ import Mustache from 'mustache';
 type GenerateBrokerOptions = {
   serviceTypesPattern: string;
   outputDir: string;
+  generateParamsSchema?: boolean;
+  generateParamsAssert?: boolean;
   isServiceName?: (name: string) => boolean;
 };
 
@@ -28,16 +30,27 @@ const serviceTemplate = fs.readFileSync(
   'utf-8',
 );
 
+const serviceParamsSchemaTemplate = fs.readFileSync(
+  path.join(__dirname, 'templates', 'service.params.schema.ts.mustache'),
+  'utf-8',
+);
+
+const serviceParamsAssertTemplate = fs.readFileSync(
+  path.join(__dirname, 'templates', 'service.params.assert.ts.mustache'),
+  'utf-8',
+);
+
+const brokerTemplate = fs.readFileSync(
+  path.join(__dirname, 'templates', 'broker.ts.mustache'),
+  'utf-8',
+);
+
 const rawMetaTemplate = fs.readFileSync(
   path.join(__dirname, 'templates/meta', 'raw.ts.mustache'),
   'utf-8',
 );
 const namesMetaTemplate = fs.readFileSync(
   path.join(__dirname, 'templates/meta', 'names.ts.mustache'),
-  'utf-8',
-);
-const brokerTemplate = fs.readFileSync(
-  path.join(__dirname, 'templates', 'broker.ts.mustache'),
   'utf-8',
 );
 
@@ -71,7 +84,12 @@ async function formatAndSave(input: string, destination: string) {
 }
 
 function getServiceTypeName(name: string) {
-  const pureName = name.replace(/[^a-zA-Z0-9]/g, '');
+  const pureName = name
+    .replace(
+      /[^a-zA-Z0-9][a-zA-Z0-9]/g,
+      one => one.charAt(0) + one.charAt(1).toUpperCase(),
+    )
+    .replace(/[^a-zA-Z0-9]/g, '');
   return `${capitalize(pureName)}ServiceTypes`;
 }
 
@@ -207,10 +225,20 @@ export async function generateBroker(options: GenerateBrokerOptions) {
   );
 
   const callObj: {
-    [K: string]: { name: string; type: string; index: number };
+    [K: string]: {
+      actionName: string;
+      name: string;
+      type: string;
+      index: number;
+    };
   } = {};
   const emitObj: {
-    [K: string]: { name: string; type: string; index: number };
+    [K: string]: {
+      eventName: string;
+      name: string;
+      type: string;
+      index: number;
+    };
   } = {};
 
   // call
@@ -219,11 +247,13 @@ export async function generateBroker(options: GenerateBrokerOptions) {
 
     // actions GetCallParams/GetCallReturn
     for (let index: number = 0; index < actionsLength; index++) {
-      const name = `${svc.name}.${
+      const actionName = `${
         metaNames[`Services${getServiceTypeName(svc.name)}ActionsName${index}`]
       }`;
+      const name = `${svc.name}.${actionName}`;
 
       callObj[name] = {
+        actionName,
         name,
         index,
         type: getServiceTypeName(svc.name),
@@ -232,11 +262,13 @@ export async function generateBroker(options: GenerateBrokerOptions) {
 
     // events GetEmitParams
     for (let index: number = 0; index < eventsLength; index++) {
-      const name = `${svc.name}.${
+      const eventName = `${
         metaNames[`Services${getServiceTypeName(svc.name)}EventsName${index}`]
       }`;
+      const name = `${svc.name}.${eventName}`;
 
       emitObj[name] = {
+        eventName,
         name,
         index,
         type: getServiceTypeName(svc.name),
@@ -258,4 +290,32 @@ export async function generateBroker(options: GenerateBrokerOptions) {
     brokerTypesFileContent,
     path.join(outputDirFs, 'broker.types.ts'),
   );
+
+  if (options.generateParamsAssert) {
+    const serviceParamsAssertFileContent = Mustache.render(
+      serviceParamsAssertTemplate,
+      {
+        callObj: Object.values(callObj),
+      },
+    );
+
+    await formatAndSave(
+      serviceParamsAssertFileContent,
+      path.join(outputDirFs, 'service.params.assert.ts'),
+    );
+  }
+
+  if (options.generateParamsSchema) {
+    const serviceParamsSchemaFileContent = Mustache.render(
+      serviceParamsSchemaTemplate,
+      {
+        callObj: Object.values(callObj),
+      },
+    );
+
+    await formatAndSave(
+      serviceParamsSchemaFileContent,
+      path.join(outputDirFs, 'service.params.schema.ts'),
+    );
+  }
 }

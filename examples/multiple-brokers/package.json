@@ -8,14 +8,15 @@
     "build": "tsc",
     "dev:watch": "ts-node src/bin/dev.watch.ts",
     "dev:broker:gen": "ts-node src/bin/dev.broker.gen.ts",
-    "postinstall": "ts-patch install"
+    "postinstall": "ts-patch install && patch-package"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "moleculer": "^0.13.11",
     "moleculer-decorators": "^1.1.1",
-    "moleculer-ts": "^2.0.0"
+    "moleculer-ts": "^2.0.0",
+    "patch-package": "^6.2.0"
   },
   "devDependencies": {
     "glob-watcher": "^5.0.3",
@@ -23,7 +24,9 @@
     "ts-node": "^8.4.1",
     "ts-patch": "^1.0.4",
     "ts-transformer-enumerate": "^0.4.0",
+    "ts-transformer-json-schema": "^0.6.12",
     "typescript": "^3.7.3",
+    "typescript-is": "^0.13.1",
     "typescript-transform-paths": "^1.1.11"
   }
 }
