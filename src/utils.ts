@@ -25,18 +25,18 @@ const capitalize = (s: string) => {
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
-const serviceTemplate = fs.readFileSync(
-  path.join(__dirname, 'templates', 'service.ts.mustache'),
+const servicesTemplate = fs.readFileSync(
+  path.join(__dirname, 'templates', 'services.ts.mustache'),
   'utf-8',
 );
 
-const serviceParamsSchemaTemplate = fs.readFileSync(
-  path.join(__dirname, 'templates', 'service.params.schema.ts.mustache'),
+const servicesParamsSchemaTemplate = fs.readFileSync(
+  path.join(__dirname, 'templates', 'services.params.schema.ts.mustache'),
   'utf-8',
 );
 
-const serviceParamsAssertTemplate = fs.readFileSync(
-  path.join(__dirname, 'templates', 'service.params.assert.ts.mustache'),
+const servicesParamsAssertTemplate = fs.readFileSync(
+  path.join(__dirname, 'templates', 'services.params.assert.ts.mustache'),
   'utf-8',
 );
 
@@ -205,7 +205,7 @@ export async function generateBroker(options: GenerateBrokerOptions) {
   });
 
   // service types file content
-  const serviceTypesFileContent = Mustache.render(serviceTemplate, {
+  const serviceTypesFileContent = Mustache.render(servicesTemplate, {
     services: services.map(({ path, name }) => {
       return {
         path,
@@ -292,30 +292,30 @@ export async function generateBroker(options: GenerateBrokerOptions) {
   );
 
   if (options.generateParamsAssert) {
-    const serviceParamsAssertFileContent = Mustache.render(
-      serviceParamsAssertTemplate,
+    const servicesParamsAssertFileContent = Mustache.render(
+      servicesParamsAssertTemplate,
       {
         callObj: Object.values(callObj),
       },
     );
 
     await formatAndSave(
-      serviceParamsAssertFileContent,
-      path.join(outputDirFs, 'service.params.assert.ts'),
+      servicesParamsAssertFileContent,
+      path.join(outputDirFs, 'services.params.assert.ts'),
     );
   }
 
   if (options.generateParamsSchema) {
-    const serviceParamsSchemaFileContent = Mustache.render(
-      serviceParamsSchemaTemplate,
+    const servicesParamsSchemaFileContent = Mustache.render(
+      servicesParamsSchemaTemplate,
       {
         callObj: Object.values(callObj),
       },
     );
 
     await formatAndSave(
-      serviceParamsSchemaFileContent,
-      path.join(outputDirFs, 'service.params.schema.ts'),
+      servicesParamsSchemaFileContent,
+      path.join(outputDirFs, 'services.params.schema.ts'),
     );
   }
 }

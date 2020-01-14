@@ -1,6 +1,6 @@
 import { Service, Action, Event, Method } from 'moleculer-decorators';
 import * as Broker from '@first.broker/moleculer';
-import { UserServiceTypes, V1apiServiceTypes } from '@first.broker/types';
+import { UserServiceTypes, V1ApiServiceTypes } from '@first.broker/types';
 
 interface V1ApiService {
   name: 'api';
@@ -11,7 +11,7 @@ interface V1ApiService {
   mixins: [],
 })
 class V1ApiService extends Broker.Service<{}>
-  implements V1apiServiceTypes.ServiceOwnActions {
+  implements V1ApiServiceTypes.ServiceOwnActions {
   settings: any;
   @Event({
     name: Broker.eventName('user.nodeChange'),
@@ -27,8 +27,8 @@ class V1ApiService extends Broker.Service<{}>
 
   @Action()
   async request(
-    ctx: Broker.Context<V1apiServiceTypes.ActionParams<'request'>>,
-  ): Promise<V1apiServiceTypes.ActionReturn<'request'>> {
+    ctx: Broker.Context<V1ApiServiceTypes.ActionParams<'request'>>,
+  ): Promise<V1ApiServiceTypes.ActionReturn<'request'>> {
     const params = ctx.params;
     params.req;
     params.res;
@@ -40,8 +40,8 @@ class V1ApiService extends Broker.Service<{}>
 
   @Action()
   async context(
-    ctx: Broker.Context<V1apiServiceTypes.ActionParams<'context'>>,
-  ): Promise<V1apiServiceTypes.ActionReturn<'context'>> {
+    ctx: Broker.Context<V1ApiServiceTypes.ActionParams<'context'>>,
+  ): Promise<V1ApiServiceTypes.ActionReturn<'context'>> {
     const params = ctx.params;
     params.account.id;
     params.user.id;
