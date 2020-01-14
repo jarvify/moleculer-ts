@@ -4,7 +4,7 @@ import { createAssertEquals, createAssertType } from 'typescript-is';
 export default {
 {{#callObj}}
   '{{name}}': {
-    equals: createAssertType<Services.{{type}}.ActionParams<'{{actionName}}'>>(),
+    equals: createAssertEquals<Services.{{type}}.ActionParams<'{{actionName}}'>>(),
     type: createAssertType<Services.{{type}}.ActionParams<'{{actionName}}'>>()
   },
 {{/callObj}}
