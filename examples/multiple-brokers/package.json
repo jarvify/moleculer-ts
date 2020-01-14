@@ -15,7 +15,7 @@
   "dependencies": {
     "moleculer": "^0.13.11",
     "moleculer-decorators": "^1.1.1",
-    "moleculer-ts": "^2.0.1",
+    "moleculer-ts": "^2.0.2",
     "patch-package": "^6.2.0"
   },
   "devDependencies": {
