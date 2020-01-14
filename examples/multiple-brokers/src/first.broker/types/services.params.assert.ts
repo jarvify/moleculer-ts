@@ -3,19 +3,19 @@ import { createAssertEquals, createAssertType } from 'typescript-is';
 
 export default {
   'api.request': {
-    equals: createAssertType<
+    equals: createAssertEquals<
       Services.ApiServiceTypes.ActionParams<'request'>
     >(),
     type: createAssertType<Services.ApiServiceTypes.ActionParams<'request'>>(),
   },
   'api.context': {
-    equals: createAssertType<
+    equals: createAssertEquals<
       Services.ApiServiceTypes.ActionParams<'context'>
     >(),
     type: createAssertType<Services.ApiServiceTypes.ActionParams<'context'>>(),
   },
   'v1.api.request': {
-    equals: createAssertType<
+    equals: createAssertEquals<
       Services.V1ApiServiceTypes.ActionParams<'request'>
     >(),
     type: createAssertType<
@@ -23,7 +23,7 @@ export default {
     >(),
   },
   'v1.api.context': {
-    equals: createAssertType<
+    equals: createAssertEquals<
       Services.V1ApiServiceTypes.ActionParams<'context'>
     >(),
     type: createAssertType<
@@ -31,17 +31,17 @@ export default {
     >(),
   },
   'user.create': {
-    equals: createAssertType<
+    equals: createAssertEquals<
       Services.UserServiceTypes.ActionParams<'create'>
     >(),
     type: createAssertType<Services.UserServiceTypes.ActionParams<'create'>>(),
   },
   'user.get': {
-    equals: createAssertType<Services.UserServiceTypes.ActionParams<'get'>>(),
+    equals: createAssertEquals<Services.UserServiceTypes.ActionParams<'get'>>(),
     type: createAssertType<Services.UserServiceTypes.ActionParams<'get'>>(),
   },
   'user.delete': {
-    equals: createAssertType<
+    equals: createAssertEquals<
       Services.UserServiceTypes.ActionParams<'delete'>
     >(),
     type: createAssertType<Services.UserServiceTypes.ActionParams<'delete'>>(),
