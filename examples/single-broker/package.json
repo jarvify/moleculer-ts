@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "dev:watch": "ts-node bin/dev.watch.ts --watch",
-    "dev:broker:gen": "ts-node bin/dev.broker.gen.ts",
+    "gen:broker:types": "ts-node bin/gen.broker.types.ts",
     "postinstall": "ts-patch install"
   },
   "author": "",

@@ -1,1 +1,1 @@
-require('./dev.broker.gen');
+import './gen.broker.types';

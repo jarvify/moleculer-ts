@@ -1,4 +1,4 @@
-import { generateBroker } from 'moleculer-ts';
+import { generateBroker, GenerateBrokerOptions } from 'moleculer-ts';
 import watch from 'glob-watcher';
 
 const brokers = ['single-broker'];
@@ -9,7 +9,7 @@ export function isWatchMode() {
 
 brokers.forEach(async broker => {
   let brokerRootDir = `${process.cwd()}/src`;
-  const generateBrokerOptions = {
+  const generateBrokerOptions: GenerateBrokerOptions = {
     serviceTypesPattern: `${brokerRootDir}/**/*.service.types.ts`,
     outputDir: `${brokerRootDir}/types`,
   };

@@ -19,11 +19,11 @@ export interface ServiceBroker {
   broadcastLocal: ServiceBroker['emit'];
 }
 
-type GetCallParams = {};
+export type GetCallParams = {};
 
-type GetCallReturn = {};
+export type GetCallReturn = {};
 
-type GetEmitParams = {};
+export type GetEmitParams = {};
 
 export type ServiceNames = Exclude<never, never>;
 export type ServiceEventNames = Exclude<never, never>;

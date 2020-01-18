@@ -19,7 +19,7 @@ export interface ServiceBroker {
   broadcastLocal: ServiceBroker['emit'];
 }
 
-type GetCallParams = {
+export type GetCallParams = {
   'api.request': Services.ApiServiceTypes.Actions[0]['in'];
   'api.context': Services.ApiServiceTypes.Actions[1]['in'];
   'v1.api.request': Services.V1ApiServiceTypes.Actions[0]['in'];
@@ -29,7 +29,7 @@ type GetCallParams = {
   'user.delete': Services.UserServiceTypes.Actions[2]['in'];
 };
 
-type GetCallReturn = {
+export type GetCallReturn = {
   'api.request': Services.ApiServiceTypes.Actions[0]['out'];
   'api.context': Services.ApiServiceTypes.Actions[1]['out'];
   'v1.api.request': Services.V1ApiServiceTypes.Actions[0]['out'];
@@ -39,7 +39,7 @@ type GetCallReturn = {
   'user.delete': Services.UserServiceTypes.Actions[2]['out'];
 };
 
-type GetEmitParams = {
+export type GetEmitParams = {
   'user.nodeChange': MoleculerTs.Union.Strict<
     Services.UserServiceTypes.Events[0]['in']
   >;

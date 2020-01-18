@@ -19,11 +19,11 @@ export interface ServiceBroker {
   broadcastLocal: ServiceBroker['emit'];
 }
 
-type GetCallParams = {};
+export type GetCallParams = {};
 
-type GetCallReturn = {};
+export type GetCallReturn = {};
 
-type GetEmitParams = {
+export type GetEmitParams = {
   '$broker.started': MoleculerTs.Union.Strict<
     Services.BrokerServiceTypes.Events[0]['in']
   >;

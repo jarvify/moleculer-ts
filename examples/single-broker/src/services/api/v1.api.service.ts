@@ -1,7 +1,7 @@
 // import types from custom Moleculer typedef
 import { Service, Context, eventName } from '../../typed-moleculer';
 // import other services types
-import { UserServiceTypes, V1apiServiceTypes } from '../../types';
+import { UserServiceTypes, V1ApiServiceTypes } from '../../types';
 // use moleculer-decorators
 import { Service as DService, Action, Event } from 'moleculer-decorators';
 
@@ -14,7 +14,7 @@ interface V1ApiService {
   mixins: [],
 })
 class V1ApiService extends Service<{}>
-  implements V1apiServiceTypes.ServiceOwnActions {
+  implements V1ApiServiceTypes.ServiceOwnActions {
   settings: any;
   @Event({
     name: eventName('user.nodeChange'),
@@ -30,12 +30,11 @@ class V1ApiService extends Service<{}>
 
   @Action()
   async request(
-    ctx: Context<V1apiServiceTypes.ActionParams<'request'>>,
-  ): Promise<V1apiServiceTypes.ActionReturn<'request'>> {
+    ctx: Context<V1ApiServiceTypes.ActionParams<'request'>>,
+  ): Promise<V1ApiServiceTypes.ActionReturn<'request'>> {
     const params = ctx.params;
     params.req;
     params.res;
-
 
     ctx.call('user.delete', { id: 'a' });
 
@@ -44,8 +43,8 @@ class V1ApiService extends Service<{}>
 
   @Action()
   async context(
-    ctx: Context<V1apiServiceTypes.ActionParams<'context'>>,
-  ): Promise<V1apiServiceTypes.ActionReturn<'context'>> {
+    ctx: Context<V1ApiServiceTypes.ActionParams<'context'>>,
+  ): Promise<V1ApiServiceTypes.ActionReturn<'context'>> {
     const params = ctx.params;
     params.account.id;
     params.user.id;
