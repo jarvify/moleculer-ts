@@ -15,7 +15,7 @@
 
 - Generate types for call, emit, broadcast, broadcastLocal functions
 - Customizable Broker & Service interface
-- Automatic regeneration of types on files change - `generateBrokerWatch`
+- Automatic regeneration of types on files change
 - Using ts-patch & ts-transformer-enumerate - please follow installation instructions
 
 ## Installation
@@ -70,7 +70,7 @@ export type Actions = ConcatMultiple<[OwnActions]>;
 export type Events = ConcatMultiple<[OwnEvents]>;
 ```
 
-#### Write your dev.broker.gen.ts script
+#### Write your gen.broker.types.ts script
 
 Write your generator module. Use `generateBroker` to scan types and prints it in `outputDir`
 
@@ -92,7 +92,7 @@ Run this script from `package.json`
 ```json
 {
   "scripts": {
-    "dev:broker:gen": "ts-node src/dev.broker.gen.ts"
+    "gen:broker:types": "ts-node src/gen.broker.types.ts"
   }
 }
 ```
