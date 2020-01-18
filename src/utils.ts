@@ -5,11 +5,13 @@ import path from 'path';
 import cp from 'child_process';
 import Mustache from 'mustache';
 
-type GenerateBrokerOptions = {
+export type GenerateBrokerOptions = {
   serviceTypesPattern: string;
   outputDir: string;
-  generateParamsSchema?: boolean;
-  generateParamsAssert?: boolean;
+  generateActionsParamsSchema?: boolean;
+  generateActionsParamsAssert?: boolean;
+  generateEventsParamsSchema?: boolean;
+  generateEventsParamsAssert?: boolean;
   isServiceName?: (name: string) => boolean;
 };
 
@@ -30,13 +32,23 @@ const servicesTemplate = fs.readFileSync(
   'utf-8',
 );
 
-const servicesParamsSchemaTemplate = fs.readFileSync(
-  path.join(__dirname, 'templates', 'services.params.schema.ts.mustache'),
+const actionsParamsSchemaTemplate = fs.readFileSync(
+  path.join(__dirname, 'templates', 'actions.params.schema.ts.mustache'),
   'utf-8',
 );
 
-const servicesParamsAssertTemplate = fs.readFileSync(
-  path.join(__dirname, 'templates', 'services.params.assert.ts.mustache'),
+const actionsParamsAssertTemplate = fs.readFileSync(
+  path.join(__dirname, 'templates', 'actions.params.assert.ts.mustache'),
+  'utf-8',
+);
+
+const eventsParamsSchemaTemplate = fs.readFileSync(
+  path.join(__dirname, 'templates', 'events.params.schema.ts.mustache'),
+  'utf-8',
+);
+
+const eventsParamsAssertTemplate = fs.readFileSync(
+  path.join(__dirname, 'templates', 'events.params.assert.ts.mustache'),
   'utf-8',
 );
 
@@ -291,9 +303,9 @@ export async function generateBroker(options: GenerateBrokerOptions) {
     path.join(outputDirFs, 'broker.types.ts'),
   );
 
-  if (options.generateParamsAssert) {
+  if (options.generateActionsParamsAssert) {
     const servicesParamsAssertFileContent = Mustache.render(
-      servicesParamsAssertTemplate,
+      actionsParamsAssertTemplate,
       {
         callObj: Object.values(callObj),
       },
@@ -301,21 +313,49 @@ export async function generateBroker(options: GenerateBrokerOptions) {
 
     await formatAndSave(
       servicesParamsAssertFileContent,
-      path.join(outputDirFs, 'services.params.assert.ts'),
+      path.join(outputDirFs, 'actions.params.assert.ts'),
     );
   }
 
-  if (options.generateParamsSchema) {
-    const servicesParamsSchemaFileContent = Mustache.render(
-      servicesParamsSchemaTemplate,
+  if (options.generateActionsParamsSchema) {
+    const actionsParamsSchemaFileContent = Mustache.render(
+      actionsParamsSchemaTemplate,
       {
         callObj: Object.values(callObj),
       },
     );
 
     await formatAndSave(
-      servicesParamsSchemaFileContent,
-      path.join(outputDirFs, 'services.params.schema.ts'),
+      actionsParamsSchemaFileContent,
+      path.join(outputDirFs, 'actions.params.schema.ts'),
+    );
+  }
+
+  if (options.generateEventsParamsAssert) {
+    const eventsParamsAssertFileContent = Mustache.render(
+      eventsParamsAssertTemplate,
+      {
+        emitObj: Object.values(emitObj),
+      },
+    );
+
+    await formatAndSave(
+      eventsParamsAssertFileContent,
+      path.join(outputDirFs, 'events.params.assert.ts'),
+    );
+  }
+
+  if (options.generateEventsParamsSchema) {
+    const eventsParamsSchemaFileContent = Mustache.render(
+      eventsParamsSchemaTemplate,
+      {
+        emitObj: Object.values(emitObj),
+      },
+    );
+
+    await formatAndSave(
+      eventsParamsSchemaFileContent,
+      path.join(outputDirFs, 'events.params.schema.ts'),
     );
   }
 }

@@ -1,0 +1,13 @@
+import * as Services from './services.types';
+import { createAssertEquals, createAssertType } from 'typescript-is';
+
+export default {
+{{#emitObj}}
+  '{{name}}': {
+    equals: createAssertEquals<Services.{{type}}.EventParams<'{{eventName}}'>>(),
+    type: createAssertType<Services.{{type}}.EventParams<'{{eventName}}'>>()
+  },
+{{/emitObj}}
+}
+
+
