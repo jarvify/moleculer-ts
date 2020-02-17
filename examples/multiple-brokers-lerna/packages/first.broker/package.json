@@ -13,7 +13,7 @@
   "dependencies": {
     "moleculer": "^0.13.12",
     "moleculer-decorators": "^1.1.1",
-    "moleculer-ts": "^2.0.5",
+    "moleculer-ts": "^2.0.6",
     "patch-package": "^6.2.0",
     "second.broker": "^1.0.0"
   },
