@@ -1,0 +1,16 @@
+{
+  "name": "second.broker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "typings": "dist/index",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "first.broker": "^1.0.0"
+  }
+}

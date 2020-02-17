@@ -1,7 +1,5 @@
 export * from './utils';
-import { Union } from 'ts-toolbelt';
 import { ConcatMultiple as ConcatMultipleTuple } from 'typescript-tuple';
-export { Union } from 'ts-toolbelt';
 
 export type ConcatMultiple<
   TupleSet extends { name: string; in: GenericObject; out?: any }[][]
@@ -43,11 +41,6 @@ export type GetNameKeys<T extends any[], P extends GetNames<T>> = {
       : never
     : never;
 }[KeyOfTuple<T>];
-
-export type GetParamsStrict<
-  T extends any[],
-  P extends GetNames<T>
-> = Union.Strict<GetParams<T, P>>;
 
 export type GetParams<T extends any[], P extends GetNames<T>> = {
   [K in GetNameKeys<T, P>]: T[K] extends { in: any } ? T[K]['in'] : never;

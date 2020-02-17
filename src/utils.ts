@@ -8,9 +8,7 @@ import Mustache from 'mustache';
 export type GenerateBrokerOptions = {
   serviceTypesPattern: string;
   outputDir: string;
-  generateActionsParamsSchema?: boolean;
   generateActionsParamsAssert?: boolean;
-  generateEventsParamsSchema?: boolean;
   generateEventsParamsAssert?: boolean;
   isServiceName?: (name: string) => boolean;
 };
@@ -32,8 +30,8 @@ const servicesTemplate = fs.readFileSync(
   'utf-8',
 );
 
-const actionsParamsSchemaTemplate = fs.readFileSync(
-  path.join(__dirname, 'templates', 'actions.params.schema.ts.mustache'),
+const brokerTemplate = fs.readFileSync(
+  path.join(__dirname, 'templates', 'broker.ts.mustache'),
   'utf-8',
 );
 
@@ -42,18 +40,8 @@ const actionsParamsAssertTemplate = fs.readFileSync(
   'utf-8',
 );
 
-const eventsParamsSchemaTemplate = fs.readFileSync(
-  path.join(__dirname, 'templates', 'events.params.schema.ts.mustache'),
-  'utf-8',
-);
-
 const eventsParamsAssertTemplate = fs.readFileSync(
   path.join(__dirname, 'templates', 'events.params.assert.ts.mustache'),
-  'utf-8',
-);
-
-const brokerTemplate = fs.readFileSync(
-  path.join(__dirname, 'templates', 'broker.ts.mustache'),
   'utf-8',
 );
 
@@ -264,6 +252,10 @@ export async function generateBroker(options: GenerateBrokerOptions) {
       }`;
       const name = `${svc.name}.${actionName}`;
 
+      if (callObj[name] !== undefined) {
+        throw new Error(`Action ${name} multiple type definition detected.`);
+      }
+
       callObj[name] = {
         actionName,
         name,
@@ -278,6 +270,10 @@ export async function generateBroker(options: GenerateBrokerOptions) {
         metaNames[`Services${getServiceTypeName(svc.name)}EventsName${index}`]
       }`;
       const name = `${svc.name}.${eventName}`;
+
+      if (emitObj[name] !== undefined) {
+        throw new Error(`Event ${name} multiple type definition detected.`);
+      }
 
       emitObj[name] = {
         eventName,
@@ -317,20 +313,6 @@ export async function generateBroker(options: GenerateBrokerOptions) {
     );
   }
 
-  if (options.generateActionsParamsSchema) {
-    const actionsParamsSchemaFileContent = Mustache.render(
-      actionsParamsSchemaTemplate,
-      {
-        callObj: Object.values(callObj),
-      },
-    );
-
-    await formatAndSave(
-      actionsParamsSchemaFileContent,
-      path.join(outputDirFs, 'actions.params.schema.ts'),
-    );
-  }
-
   if (options.generateEventsParamsAssert) {
     const eventsParamsAssertFileContent = Mustache.render(
       eventsParamsAssertTemplate,
@@ -342,20 +324,6 @@ export async function generateBroker(options: GenerateBrokerOptions) {
     await formatAndSave(
       eventsParamsAssertFileContent,
       path.join(outputDirFs, 'events.params.assert.ts'),
-    );
-  }
-
-  if (options.generateEventsParamsSchema) {
-    const eventsParamsSchemaFileContent = Mustache.render(
-      eventsParamsSchemaTemplate,
-      {
-        emitObj: Object.values(emitObj),
-      },
-    );
-
-    await formatAndSave(
-      eventsParamsSchemaFileContent,
-      path.join(outputDirFs, 'events.params.schema.ts'),
     );
   }
 }

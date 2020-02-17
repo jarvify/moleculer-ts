@@ -1,18 +1,20 @@
 diff --git a/node_modules/typescript-is/lib/transform-inline/transformer.js b/node_modules/typescript-is/lib/transform-inline/transformer.js
-index f77606b..1a0236f 100644
+index f77606b..d580195 100644
 --- a/node_modules/typescript-is/lib/transform-inline/transformer.js
 +++ b/node_modules/typescript-is/lib/transform-inline/transformer.js
-@@ -30,7 +30,12 @@ function transformNodeAndChildren(node, program, context, visitorContext) {
+@@ -30,7 +30,14 @@ function transformNodeAndChildren(node, program, context, visitorContext) {
      catch (error) {
          const sourceFile = node.getSourceFile();
          const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.pos);
 -        throw new NestedError(`Failed to transform node at: ${sourceFile.fileName}:${line + 1}:${character + 1}`, error);
 +        // moleculer-ts fix
-+        if (!sourceFile.fileName.endsWith('services.params.assert.ts')) {
-+            throw new NestedError(`Failed to transform node at: ${sourceFile.fileName}:${line + 1}:${character + 1}`, error);
-+           
-+        } 
-+        transformedNode = ts.createLiteral(`ERROR: ${error.message}`);
++        if (sourceFile.fileName.endsWith('actions.params.assert.ts')) {
++          transformedNode = ts.createLiteral(`ERROR: ${error.message}`);
++        } else if (sourceFile.fileName.endsWith('events.params.assert.ts')) {
++          transformedNode = ts.createLiteral(`ERROR: ${error.message}`);
++        } else {
++          throw new NestedError(`Failed to transform node at: ${sourceFile.fileName}:${line + 1}:${character + 1}`, error);
++        }
      }
      return ts.visitEachChild(transformedNode, (childNode) => transformNodeAndChildren(childNode, program, context, visitorContext), context);
  }

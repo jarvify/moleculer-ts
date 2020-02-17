@@ -3,8 +3,7 @@ import { schema } from 'ts-transformer-json-schema';
 type Trim<T> = { [K in keyof T]: any };
 
 export default {
-{{#emitObj}}
-  '{{name}}': schema<Trim<Services.{{type}}.EventParams<'{{eventName}}'>>>(),
-{{/emitObj}}
-}
-
+  'user.nodeChange': schema<
+    Trim<Services.UserServiceTypes.EventParams<'nodeChange'>>
+  >(),
+};

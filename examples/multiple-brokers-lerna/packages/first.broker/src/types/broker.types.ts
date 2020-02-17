@@ -1,12 +1,12 @@
 import * as MoleculerTs from 'moleculer-ts';
-import * as Moleculer from './moleculer';
+import * as Broker from './moleculer';
 import * as Services from './services.types';
 
 export interface ServiceBroker {
   call<T extends ServiceActionNames>(
     actionName: T,
     params: GetCallParams[T],
-    opts?: Moleculer.CallingOptions,
+    opts?: Broker.CallingOptions,
   ): PromiseLike<GetCallReturn[T]>;
 
   emit<T extends ServiceEventNames>(
@@ -40,7 +40,9 @@ export type GetCallReturn = {
 };
 
 export type GetEmitParams = {
-  'user.nodeChange': Services.UserServiceTypes.Events[0]['in'];
+  'user.nodeChange': MoleculerTs.Union.Strict<
+    Services.UserServiceTypes.Events[0]['in']
+  >;
 };
 
 export type ServiceNames = Exclude<never | 'api' | 'v1.api' | 'user', never>;

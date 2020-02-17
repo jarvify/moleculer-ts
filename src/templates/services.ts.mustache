@@ -2,9 +2,9 @@ import * as MoleculerTs from 'moleculer-ts';
 
 {{#services}}
 declare module '{{{path}}}' {
-  type ActionParams<T extends MoleculerTs.GetNames<Actions>> = MoleculerTs.GetParamsStrict<Actions, T>;
+  type ActionParams<T extends MoleculerTs.GetNames<Actions>> = MoleculerTs.GetParams<Actions, T>;
   type ActionReturn<T extends MoleculerTs.GetNames<Actions>> = MoleculerTs.GetReturn<Actions, T>;
-  type EventParams<T extends MoleculerTs.GetNames<Events>> = MoleculerTs.GetParamsStrict<Events, T>;
+  type EventParams<T extends MoleculerTs.GetNames<Events>> = MoleculerTs.GetParams<Events, T>;
   type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<OwnActions>;
 }
 

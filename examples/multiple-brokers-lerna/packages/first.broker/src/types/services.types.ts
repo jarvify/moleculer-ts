@@ -3,39 +3,39 @@ import * as MoleculerTs from 'moleculer-ts';
 declare module '../services/api/api.service.types' {
   type ActionParams<
     T extends MoleculerTs.GetNames<Actions>
-  > = MoleculerTs.GetParams<Actions, T>;
+  > = MoleculerTs.GetParamsStrict<Actions, T>;
   type ActionReturn<
     T extends MoleculerTs.GetNames<Actions>
   > = MoleculerTs.GetReturn<Actions, T>;
   type EventParams<
     T extends MoleculerTs.GetNames<Events>
-  > = MoleculerTs.GetParams<Events, T>;
+  > = MoleculerTs.GetParamsStrict<Events, T>;
   type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<OwnActions>;
 }
 
 declare module '../services/api/v1.api.service.types' {
   type ActionParams<
     T extends MoleculerTs.GetNames<Actions>
-  > = MoleculerTs.GetParams<Actions, T>;
+  > = MoleculerTs.GetParamsStrict<Actions, T>;
   type ActionReturn<
     T extends MoleculerTs.GetNames<Actions>
   > = MoleculerTs.GetReturn<Actions, T>;
   type EventParams<
     T extends MoleculerTs.GetNames<Events>
-  > = MoleculerTs.GetParams<Events, T>;
+  > = MoleculerTs.GetParamsStrict<Events, T>;
   type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<OwnActions>;
 }
 
 declare module '../services/user/user.service.types' {
   type ActionParams<
     T extends MoleculerTs.GetNames<Actions>
-  > = MoleculerTs.GetParams<Actions, T>;
+  > = MoleculerTs.GetParamsStrict<Actions, T>;
   type ActionReturn<
     T extends MoleculerTs.GetNames<Actions>
   > = MoleculerTs.GetReturn<Actions, T>;
   type EventParams<
     T extends MoleculerTs.GetNames<Events>
-  > = MoleculerTs.GetParams<Events, T>;
+  > = MoleculerTs.GetParamsStrict<Events, T>;
   type ServiceOwnActions = MoleculerTs.GetServiceOwnActions<OwnActions>;
 }
 

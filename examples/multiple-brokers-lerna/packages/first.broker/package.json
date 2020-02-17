@@ -1,0 +1,31 @@
+{
+  "name": "first.broker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "typings": "dist/index",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "moleculer": "^0.13.12",
+    "moleculer-decorators": "^1.1.1",
+    "moleculer-ts": "^2.0.5",
+    "patch-package": "^6.2.0",
+    "second.broker": "^1.0.0"
+  },
+  "devDependencies": {
+    "glob-watcher": "^5.0.3",
+    "prettier": "^1.18.2",
+    "ts-node": "^8.4.1",
+    "ts-patch": "^1.0.4",
+    "ts-transformer-enumerate": "^0.4.0",
+    "ts-transformer-json-schema": "^0.6.12",
+    "typescript": "^3.7.3",
+    "typescript-is": "^0.13.1",
+    "typescript-transform-paths": "^1.1.11"
+  }
+}
